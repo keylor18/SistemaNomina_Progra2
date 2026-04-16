@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project name="SistemaNominaProgra2Keylor" default="default" basedir=".">
-    <description>Builds, tests, and runs the SistemaNominaProgra2Keylor project.</description>
+<project name="Examen2_Programa2" default="default" basedir=".">
+    <description>Builds, tests, and runs the Examen2_Programa2 project.</description>
     <import file="nbproject/build-impl.xml"/>
 </project>

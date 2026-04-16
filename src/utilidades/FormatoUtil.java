@@ -32,6 +32,45 @@ public final class FormatoUtil {
     }
 
     /**
+     * Interpreta montos digitados por la persona usuaria con separadores
+     * decimales o de miles flexibles.
+     *
+     * @param valor texto a convertir
+     * @return monto numerico equivalente
+     * @throws NumberFormatException si no contiene un valor numerico valido
+     */
+    public static double parsearMonto(String valor) {
+        if (valor == null) {
+            throw new NumberFormatException("El monto es obligatorio.");
+        }
+
+        String normalizado = valor.trim()
+                .replace(" ", "")
+                .replace("\u00A0", "")
+                .replace("₡", "");
+        if (normalizado.isEmpty()) {
+            throw new NumberFormatException("El monto es obligatorio.");
+        }
+
+        int ultimaComa = normalizado.lastIndexOf(',');
+        int ultimoPunto = normalizado.lastIndexOf('.');
+        int indiceDecimal = Math.max(ultimaComa, ultimoPunto);
+
+        if (indiceDecimal >= 0) {
+            String parteEntera = normalizado.substring(0, indiceDecimal).replace(",", "").replace(".", "");
+            String parteDecimal = normalizado.substring(indiceDecimal + 1).replace(",", "").replace(".", "");
+            normalizado = parteDecimal.isEmpty() ? parteEntera : parteEntera + "." + parteDecimal;
+        } else {
+            normalizado = normalizado.replace(",", "").replace(".", "");
+        }
+
+        if (normalizado.isEmpty() || "-".equals(normalizado)) {
+            throw new NumberFormatException("El monto no es valido.");
+        }
+        return Double.parseDouble(normalizado);
+    }
+
+    /**
      * Formatea una fecha local.
      *
      * @param fecha fecha a mostrar

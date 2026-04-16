@@ -1,4 +1,4 @@
-# SistemaNomina_Progra2_Keylor
+# Examen2_Programa2
 
 Aplicacion de escritorio en Java Swing para gestionar empleados, calcular nominas con referencia normativa costarricense 2026, generar reportes PDF y enviar comprobantes por correo electronico.
 

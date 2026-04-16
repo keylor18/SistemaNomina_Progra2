@@ -2,7 +2,7 @@
 
 ## 1. Inicio
 
-- `presentacion.AplicacionNomina` prepara tema visual, carpetas y archivos.
+- `presentacion.Examen2_Programa2` prepara tema visual, carpetas y archivos.
 - `presentacion.ContextoAplicacion` inicializa repositorios y servicios.
 - `LoginController` presenta `LoginFrame`.
 

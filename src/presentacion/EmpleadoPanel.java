@@ -100,6 +100,7 @@ public class EmpleadoPanel extends JPanel {
         TemaVisual.estilizarCampo(txtDepartamento);
         TemaVisual.estilizarCampo(txtCorreo);
         TemaVisual.estilizarCampo(txtSalario);
+        txtSalario.setToolTipText("Ejemplos: 450000 | 450000,50 | 450000.50");
         TemaVisual.estilizarSpinner(spHijos);
         TemaVisual.estilizarSpinner(spFechaIngreso);
         TemaVisual.estilizarCheck(chkConyuge);
@@ -137,6 +138,7 @@ public class EmpleadoPanel extends JPanel {
         split.setBorder(BorderFactory.createEmptyBorder());
         split.setDividerLocation(420);
         split.setDividerSize(12);
+        split.setResizeWeight(0.42);
         add(split, BorderLayout.CENTER);
     }
 
@@ -172,7 +174,7 @@ public class EmpleadoPanel extends JPanel {
         empleado.setPuesto(txtPuesto.getText().trim());
         empleado.setDepartamento(txtDepartamento.getText().trim());
         empleado.setCorreoElectronico(txtCorreo.getText().trim());
-        empleado.setSalarioBaseMensual(Double.parseDouble(txtSalario.getText().trim()));
+        empleado.setSalarioBaseMensual(FormatoUtil.parsearMonto(txtSalario.getText().trim()));
         empleado.setCantidadHijos((Integer) spHijos.getValue());
         empleado.setConyugeACargo(chkConyuge.isSelected());
         empleado.setFechaIngreso(((Date) spFechaIngreso.getValue()).toInstant()
@@ -336,7 +338,14 @@ public class EmpleadoPanel extends JPanel {
         tarjeta.add(encabezado, BorderLayout.NORTH);
         tarjeta.add(formulario, BorderLayout.CENTER);
         tarjeta.add(acciones, BorderLayout.SOUTH);
-        return tarjeta;
+
+        JScrollPane scroll = new JScrollPane(tarjeta);
+        scroll.setBorder(BorderFactory.createEmptyBorder());
+        scroll.setOpaque(false);
+        scroll.getViewport().setOpaque(false);
+        scroll.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+        scroll.getVerticalScrollBar().setUnitIncrement(16);
+        return scroll;
     }
 
     private JComponent crearTarjetaTabla() {

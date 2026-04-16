@@ -42,7 +42,7 @@ public class ReporteNominaService extends LogicaBase implements ExportadorPdf<No
             Document document = new Document(PageSize.A4, 40, 40, 36, 36);
             PdfWriter.getInstance(document, output);
             document.open();
-            document.add(new Paragraph("Sistema de Nomina Empresarial", TITULO));
+            document.add(new Paragraph("Examen2_Programa2", TITULO));
             document.add(new Paragraph("Comprobante individual de nomina", SUBTITULO));
             document.add(new Paragraph("Empleado: " + nomina.getNombreEmpleado(), TEXTO));
             document.add(new Paragraph("Periodo: " + FormatoUtil.formatearPeriodo(nomina.getPeriodo()), TEXTO));

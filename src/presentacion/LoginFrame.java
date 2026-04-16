@@ -8,7 +8,6 @@ import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
-import java.awt.Insets;
 import java.awt.event.ActionListener;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -20,7 +19,6 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 import javax.swing.JTextField;
-import javax.swing.SwingConstants;
 import presentacion.componentes.PanelGradiente;
 import presentacion.componentes.PanelRedondeado;
 import presentacion.estilo.TemaVisual;
@@ -36,7 +34,7 @@ public class LoginFrame extends JFrame {
     private JLabel lblEstado;
 
     public LoginFrame() {
-        setTitle("Sistema de Nomina Empresarial");
+        setTitle("Examen2_Programa2");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(new Dimension(1040, 640));
         setMinimumSize(new Dimension(980, 600));
@@ -85,7 +83,7 @@ public class LoginFrame extends JFrame {
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
         panel.setBorder(BorderFactory.createEmptyBorder(42, 42, 42, 42));
 
-        JLabel marca = new JLabel("NOMINA 360");
+        JLabel marca = new JLabel("Examen2_Programa2");
         marca.setFont(TemaVisual.fuente(Font.BOLD, 13));
         marca.setForeground(new Color(227, 213, 191));
 
@@ -200,7 +198,7 @@ public class LoginFrame extends JFrame {
     }
 
     private JLabel crearBullet(String texto) {
-        JLabel label = new JLabel("<html><span style='color:#E3D5BF;font-size:12px;'>●</span> " + texto + "</html>");
+        JLabel label = new JLabel("<html><span style='color:#E3D5BF;font-size:12px;'>&#9679;</span> " + texto + "</html>");
         label.setFont(TemaVisual.fuente(Font.PLAIN, 14));
         label.setForeground(Color.WHITE);
         return label;

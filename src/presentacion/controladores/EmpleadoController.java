@@ -50,7 +50,7 @@ public class EmpleadoController {
             recargar();
             notificarCambio();
         } catch (NumberFormatException ex) {
-            panel.mostrarError("Revise el salario y la fecha de ingreso.");
+            panel.mostrarError("Revise el salario. Puede usar formatos como 450000, 450000,50 o 450000.50.");
         } catch (PersistenciaException | ValidacionException ex) {
             RegistroLogger.registrarError("Guardar empleado", ex);
             panel.mostrarError(ex.getMessage());
@@ -66,7 +66,7 @@ public class EmpleadoController {
             recargar();
             notificarCambio();
         } catch (NumberFormatException ex) {
-            panel.mostrarError("Revise el salario y la fecha de ingreso.");
+            panel.mostrarError("Revise el salario. Puede usar formatos como 450000, 450000,50 o 450000.50.");
         } catch (PersistenciaException | ValidacionException | EntidadNoEncontradaException ex) {
             RegistroLogger.registrarError("Actualizar empleado", ex);
             panel.mostrarError(ex.getMessage());

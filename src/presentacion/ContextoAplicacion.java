@@ -1,4 +1,4 @@
-package app;
+package presentacion;
 
 import datos.EmpleadoRepositorioTxt;
 import datos.NominaRepositorioTxt;
@@ -13,9 +13,9 @@ import logica.ReporteNominaService;
 import utilidades.RutasSistema;
 
 /**
- * Contenedor simple de dependencias del sistema.
+ * Contenedor de dependencias inicializado desde la capa de presentacion.
  */
-public class AplicacionContexto {
+public class ContextoAplicacion {
 
     private final EmpleadoRepositorioTxt empleadoRepositorio;
     private final NominaRepositorioTxt nominaRepositorio;
@@ -26,7 +26,7 @@ public class AplicacionContexto {
     private final ReporteNominaService reporteNominaService;
     private final CorreoService correoService;
 
-    public AplicacionContexto() throws PersistenciaException, ValidacionException {
+    public ContextoAplicacion() throws PersistenciaException, ValidacionException {
         empleadoRepositorio = new EmpleadoRepositorioTxt(RutasSistema.EMPLEADOS);
         nominaRepositorio = new NominaRepositorioTxt(RutasSistema.NOMINAS);
         usuarioRepositorio = new UsuarioRepositorioTxt(RutasSistema.USUARIOS);

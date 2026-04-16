@@ -11,7 +11,7 @@ import java.util.Locale;
  */
 public final class FormatoUtil {
 
-    private static final Locale LOCALE_CR = new Locale("es", "CR");
+    private static final Locale LOCALE_CR = new Locale.Builder().setLanguage("es").setRegion("CR").build();
     private static final DateTimeFormatter FECHA = DateTimeFormatter.ofPattern("dd/MM/yyyy");
     private static final DateTimeFormatter PERIODO = DateTimeFormatter.ofPattern("MM/yyyy");
 

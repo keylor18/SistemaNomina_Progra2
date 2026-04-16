@@ -1,29 +1,28 @@
-package app;
+package presentacion;
 
 import excepciones.PersistenciaException;
 import excepciones.ValidacionException;
 import java.awt.EventQueue;
 import javax.swing.JOptionPane;
-import javax.swing.UIManager;
-import presentacion.LoginFrame;
 import presentacion.controladores.LoginController;
+import presentacion.estilo.TemaVisual;
 import utilidades.RegistroLogger;
 import utilidades.SistemaArchivosUtil;
 
 /**
- * Punto de entrada de la aplicacion.
+ * Punto de entrada de la aplicacion dentro de la capa de presentacion.
  */
-public final class Main {
+public final class AplicacionNomina {
 
-    private Main() {
+    private AplicacionNomina() {
     }
 
     public static void main(String[] args) {
         EventQueue.invokeLater(() -> {
             try {
-                UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+                TemaVisual.instalarTema();
                 SistemaArchivosUtil.inicializarEstructura();
-                AplicacionContexto contexto = new AplicacionContexto();
+                ContextoAplicacion contexto = new ContextoAplicacion();
                 LoginFrame loginFrame = new LoginFrame();
                 new LoginController(loginFrame, contexto);
                 loginFrame.setVisible(true);

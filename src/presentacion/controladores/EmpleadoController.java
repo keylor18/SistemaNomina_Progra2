@@ -4,7 +4,6 @@ import entidades.Empleado;
 import excepciones.EntidadNoEncontradaException;
 import excepciones.PersistenciaException;
 import excepciones.ValidacionException;
-import java.time.format.DateTimeParseException;
 import presentacion.EmpleadoPanel;
 import logica.EmpleadoService;
 import utilidades.RegistroLogger;
@@ -50,7 +49,7 @@ public class EmpleadoController {
             panel.limpiarFormulario();
             recargar();
             notificarCambio();
-        } catch (NumberFormatException | DateTimeParseException ex) {
+        } catch (NumberFormatException ex) {
             panel.mostrarError("Revise el salario y la fecha de ingreso.");
         } catch (PersistenciaException | ValidacionException ex) {
             RegistroLogger.registrarError("Guardar empleado", ex);
@@ -66,7 +65,7 @@ public class EmpleadoController {
             panel.limpiarFormulario();
             recargar();
             notificarCambio();
-        } catch (NumberFormatException | DateTimeParseException ex) {
+        } catch (NumberFormatException ex) {
             panel.mostrarError("Revise el salario y la fecha de ingreso.");
         } catch (PersistenciaException | ValidacionException | EntidadNoEncontradaException ex) {
             RegistroLogger.registrarError("Actualizar empleado", ex);

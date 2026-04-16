@@ -1,10 +1,10 @@
 package presentacion.controladores;
 
-import app.AplicacionContexto;
 import entidades.Usuario;
 import excepciones.AutenticacionFallidaException;
 import excepciones.PersistenciaException;
 import java.awt.Color;
+import presentacion.ContextoAplicacion;
 import presentacion.LoginFrame;
 import presentacion.MainFrame;
 import utilidades.RegistroLogger;
@@ -15,9 +15,9 @@ import utilidades.RegistroLogger;
 public class LoginController {
 
     private final LoginFrame loginFrame;
-    private final AplicacionContexto contexto;
+    private final ContextoAplicacion contexto;
 
-    public LoginController(LoginFrame loginFrame, AplicacionContexto contexto) {
+    public LoginController(LoginFrame loginFrame, ContextoAplicacion contexto) {
         this.loginFrame = loginFrame;
         this.contexto = contexto;
         this.loginFrame.setAccionIngresar(e -> autenticar());

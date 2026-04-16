@@ -2,8 +2,8 @@
 
 ## 1. Inicio
 
-- `app.Main` prepara carpetas y archivos.
-- `AplicacionContexto` inicializa repositorios y servicios.
+- `presentacion.AplicacionNomina` prepara tema visual, carpetas y archivos.
+- `presentacion.ContextoAplicacion` inicializa repositorios y servicios.
 - `LoginController` presenta `LoginFrame`.
 
 ## 2. Autenticacion

@@ -4,8 +4,11 @@ import entidades.Empleado;
 import entidades.Nomina;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.GridLayout;
 import java.awt.Insets;
 import java.awt.event.ActionListener;
 import java.time.YearMonth;
@@ -14,20 +17,28 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
+import javax.swing.JComponent;
+import javax.swing.JEditorPane;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSpinner;
+import javax.swing.JSplitPane;
 import javax.swing.JTable;
-import javax.swing.JTextArea;
 import javax.swing.ListSelectionModel;
 import javax.swing.SpinnerDateModel;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.table.DefaultTableModel;
+import presentacion.componentes.PanelRedondeado;
+import presentacion.componentes.RenderizadorEstadoTabla;
+import presentacion.componentes.TarjetaMetrica;
+import presentacion.estilo.TemaVisual;
 import utilidades.FormatoUtil;
 
 /**
@@ -45,45 +56,44 @@ public class NominaPanel extends JPanel {
     private final JButton btnRecargar;
     private final JTable tabla;
     private final DefaultTableModel modelo;
-    private final JTextArea areaDetalle;
+    private final JEditorPane panelDetalle;
+    private final TarjetaMetrica tarjetaRegistros;
+    private final TarjetaMetrica tarjetaBruto;
+    private final TarjetaMetrica tarjetaNeto;
+    private final TarjetaMetrica tarjetaCosto;
+    private JLabel lblResumenPeriodo;
     private List<Nomina> nominasTabla;
 
     public NominaPanel() {
-        setLayout(new BorderLayout(12, 12));
-        setBorder(BorderFactory.createEmptyBorder(12, 12, 12, 12));
+        setLayout(new BorderLayout(18, 18));
+        setBackground(TemaVisual.FONDO_APP);
+        setBorder(BorderFactory.createEmptyBorder(6, 4, 4, 4));
         nominasTabla = new ArrayList<>();
 
-        JPanel filtros = new JPanel(new GridBagLayout());
-        filtros.setBorder(BorderFactory.createTitledBorder("Generacion de nomina"));
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(5, 5, 5, 5);
-        gbc.fill = GridBagConstraints.HORIZONTAL;
+        tarjetaRegistros = new TarjetaMetrica("Nominas", "0", "Historial registrado en el sistema.");
+        tarjetaBruto = new TarjetaMetrica("Bruto total", FormatoUtil.formatearMoneda(0), "Monto salarial del historial visible.");
+        tarjetaNeto = new TarjetaMetrica("Neto total", FormatoUtil.formatearMoneda(0), "Pago neto consolidado.");
+        tarjetaCosto = new TarjetaMetrica("Costo empresa", FormatoUtil.formatearMoneda(0), "Bruto mas aportes patronales.");
+        add(crearResumenSuperior(), BorderLayout.NORTH);
 
         cmbEmpleados = new JComboBox<>();
         spPeriodo = new JSpinner(new SpinnerDateModel());
         spPeriodo.setEditor(new JSpinner.DateEditor(spPeriodo, "MM/yyyy"));
-        chkEnviarAutomatico = new JCheckBox("Enviar PDF automaticamente al generar");
+        chkEnviarAutomatico = new JCheckBox("Enviar comprobante al correo del empleado inmediatamente");
         btnGenerar = new JButton("Generar nomina");
-        btnExportarSeleccionada = new JButton("Exportar PDF individual");
-        btnExportarGeneral = new JButton("Exportar PDF general");
+        btnExportarSeleccionada = new JButton("PDF individual");
+        btnExportarGeneral = new JButton("PDF general");
         btnEnviarCorreo = new JButton("Enviar correo");
-        btnRecargar = new JButton("Recargar");
+        btnRecargar = new JButton("Recargar historial");
 
-        agregarCampo(filtros, gbc, 0, "Empleado:", cmbEmpleados);
-        agregarCampo(filtros, gbc, 1, "Periodo:", spPeriodo);
-        gbc.gridx = 0;
-        gbc.gridy = 2;
-        gbc.gridwidth = 2;
-        filtros.add(chkEnviarAutomatico, gbc);
-
-        JPanel acciones = new JPanel();
-        acciones.add(btnGenerar);
-        acciones.add(btnExportarSeleccionada);
-        acciones.add(btnExportarGeneral);
-        acciones.add(btnEnviarCorreo);
-        acciones.add(btnRecargar);
-        gbc.gridy = 3;
-        filtros.add(acciones, gbc);
+        TemaVisual.estilizarCombo(cmbEmpleados);
+        TemaVisual.estilizarSpinner(spPeriodo);
+        TemaVisual.estilizarCheck(chkEnviarAutomatico);
+        TemaVisual.estilizarBotonPrimario(btnGenerar);
+        TemaVisual.estilizarBotonSecundario(btnExportarSeleccionada);
+        TemaVisual.estilizarBotonSecundario(btnExportarGeneral);
+        TemaVisual.estilizarBotonSecundario(btnEnviarCorreo);
+        TemaVisual.estilizarBotonSecundario(btnRecargar);
 
         modelo = new DefaultTableModel(new Object[]{
             "ID", "Empleado", "Periodo", "Bruto", "Deducciones", "Aportes", "Neto", "PDF"
@@ -96,16 +106,27 @@ public class NominaPanel extends JPanel {
         tabla = new JTable(modelo);
         tabla.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         tabla.setPreferredScrollableViewportSize(new Dimension(960, 300));
+        TemaVisual.estilizarTabla(tabla);
+        tabla.getColumnModel().getColumn(7).setCellRenderer(new RenderizadorEstadoTabla());
 
-        areaDetalle = new JTextArea(12, 20);
-        areaDetalle.setEditable(false);
-        areaDetalle.setLineWrap(true);
-        areaDetalle.setWrapStyleWord(true);
-        areaDetalle.setBorder(BorderFactory.createTitledBorder("Detalle de nomina"));
+        panelDetalle = new JEditorPane("text/html", "");
+        panelDetalle.putClientProperty(JEditorPane.HONOR_DISPLAY_PROPERTIES, Boolean.TRUE);
+        panelDetalle.setEditable(false);
+        panelDetalle.setBackground(java.awt.Color.WHITE);
+        panelDetalle.setFont(TemaVisual.fuente(Font.PLAIN, 13));
+        mostrarDetalleNomina(null);
 
-        add(filtros, BorderLayout.NORTH);
-        add(new JScrollPane(tabla), BorderLayout.CENTER);
-        add(new JScrollPane(areaDetalle), BorderLayout.SOUTH);
+        JSplitPane superior = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, crearTarjetaGeneracion(), crearTarjetaDetalle());
+        superior.setOpaque(false);
+        superior.setBorder(BorderFactory.createEmptyBorder());
+        superior.setDividerLocation(470);
+        superior.setDividerSize(12);
+
+        JPanel centro = new JPanel(new BorderLayout(18, 18));
+        centro.setOpaque(false);
+        centro.add(superior, BorderLayout.CENTER);
+        centro.add(crearTarjetaHistorial(), BorderLayout.SOUTH);
+        add(centro, BorderLayout.CENTER);
     }
 
     public void setAccionGenerar(ActionListener listener) {
@@ -167,6 +188,16 @@ public class NominaPanel extends JPanel {
                 nomina.getRutaPdf() == null || nomina.getRutaPdf().isBlank() ? "Pendiente" : "Generado"
             });
         }
+        double totalBruto = nominas.stream().mapToDouble(Nomina::getSalarioBruto).sum();
+        double totalNeto = nominas.stream().mapToDouble(Nomina::getSalarioNeto).sum();
+        double totalCosto = nominas.stream().mapToDouble(Nomina::getCostoTotalEmpresa).sum();
+        tarjetaRegistros.actualizar(String.valueOf(nominas.size()), "Nominas almacenadas para consulta y reportes.");
+        tarjetaBruto.actualizar(FormatoUtil.formatearMoneda(totalBruto), "Suma del salario bruto registrado.");
+        tarjetaNeto.actualizar(FormatoUtil.formatearMoneda(totalNeto), "Monto neto consolidado del historial.");
+        tarjetaCosto.actualizar(FormatoUtil.formatearMoneda(totalCosto), "Costo total acumulado para la empresa.");
+        lblResumenPeriodo.setText(nominas.isEmpty()
+                ? "No existen nominas registradas todavia."
+                : "Seleccione una fila para revisar su detalle operativo.");
     }
 
     public Nomina getNominaSeleccionada() {
@@ -179,26 +210,31 @@ public class NominaPanel extends JPanel {
 
     public void mostrarDetalleNomina(Nomina nomina) {
         if (nomina == null) {
-            areaDetalle.setText("Seleccione una nomina para ver el detalle.");
+            panelDetalle.setText("<html><body style='font-family:Segoe UI;padding:16px;color:#213645;background:#ffffff;'>"
+                    + "<h2 style='margin-top:0;color:#125d5f;'>Detalle de nomina</h2>"
+                    + "<p>Seleccione una nomina del historial para visualizar salario bruto, deducciones, "
+                    + "aportes patronales, costo total y ruta del comprobante PDF.</p></body></html>");
             return;
         }
-        areaDetalle.setText("""
-                Empleado: %s
-                Periodo: %s
-                Fecha generacion: %s
-
-                Salario bruto: %s
-                Deduccion SEM: %s
-                Deduccion IVM: %s
-                Banco Popular trabajador: %s
-                Impuesto sobre la renta: %s
-                Total deducciones: %s
-                Salario neto: %s
-
-                Total aportes patronales: %s
-                Costo total empresa: %s
-
-                Ruta PDF: %s
+        panelDetalle.setText("""
+                <html>
+                <body style='font-family:Segoe UI;padding:16px;color:#213645;background:#ffffff;'>
+                <h2 style='margin-top:0;color:#125d5f;'>%s</h2>
+                <p style='color:#667085;margin-top:0;'>Periodo %s | Generada el %s</p>
+                <table style='width:100%%;border-collapse:collapse;font-size:13px;'>
+                <tr><td style='padding:8px 0;color:#667085;'>Salario bruto</td><td style='padding:8px 0;text-align:right;'><b>%s</b></td></tr>
+                <tr><td style='padding:8px 0;color:#667085;'>SEM</td><td style='padding:8px 0;text-align:right;'>%s</td></tr>
+                <tr><td style='padding:8px 0;color:#667085;'>IVM</td><td style='padding:8px 0;text-align:right;'>%s</td></tr>
+                <tr><td style='padding:8px 0;color:#667085;'>Banco Popular trabajador</td><td style='padding:8px 0;text-align:right;'>%s</td></tr>
+                <tr><td style='padding:8px 0;color:#667085;'>Renta salarial</td><td style='padding:8px 0;text-align:right;'>%s</td></tr>
+                <tr><td style='padding:8px 0;color:#667085;'><b>Total deducciones</b></td><td style='padding:8px 0;text-align:right;'><b>%s</b></td></tr>
+                <tr><td style='padding:8px 0;color:#125d5f;'><b>Salario neto</b></td><td style='padding:8px 0;text-align:right;color:#125d5f;'><b>%s</b></td></tr>
+                <tr><td style='padding:8px 0;color:#667085;'>Aportes patronales</td><td style='padding:8px 0;text-align:right;'>%s</td></tr>
+                <tr><td style='padding:8px 0;color:#667085;'>Costo total empresa</td><td style='padding:8px 0;text-align:right;'>%s</td></tr>
+                </table>
+                <p style='margin-top:18px;color:#667085;'><b>PDF:</b> %s</p>
+                </body>
+                </html>
                 """
                 .formatted(
                         nomina.getNombreEmpleado(),
@@ -214,6 +250,7 @@ public class NominaPanel extends JPanel {
                         FormatoUtil.formatearMoneda(nomina.getTotalAportesPatronales()),
                         FormatoUtil.formatearMoneda(nomina.getCostoTotalEmpresa()),
                         nomina.getRutaPdf() == null || nomina.getRutaPdf().isBlank() ? "Sin generar" : nomina.getRutaPdf()));
+        panelDetalle.setCaretPosition(0);
     }
 
     public void mostrarInfo(String mensaje) {
@@ -224,12 +261,120 @@ public class NominaPanel extends JPanel {
         JOptionPane.showMessageDialog(this, mensaje, "Error", JOptionPane.ERROR_MESSAGE);
     }
 
-    private void agregarCampo(JPanel panel, GridBagConstraints gbc, int fila, String etiqueta, java.awt.Component campo) {
+    private JPanel crearResumenSuperior() {
+        JPanel resumen = new JPanel(new GridLayout(1, 4, 14, 14));
+        resumen.setOpaque(false);
+        resumen.add(tarjetaRegistros);
+        resumen.add(tarjetaBruto);
+        resumen.add(tarjetaNeto);
+        resumen.add(tarjetaCosto);
+        return resumen;
+    }
+
+    private JComponent crearTarjetaGeneracion() {
+        PanelRedondeado tarjeta = new PanelRedondeado(TemaVisual.SUPERFICIE, 26);
+        tarjeta.setLayout(new BorderLayout(0, 18));
+        tarjeta.setBorder(BorderFactory.createEmptyBorder(24, 24, 24, 24));
+
+        JPanel encabezado = new JPanel();
+        encabezado.setOpaque(false);
+        encabezado.setLayout(new BoxLayout(encabezado, BoxLayout.Y_AXIS));
+        encabezado.add(TemaVisual.crearTituloSeccion("Generacion de nomina"));
+        encabezado.add(Box.createVerticalStrut(6));
+        encabezado.add(TemaVisual.crearSubtitulo("Prepare el periodo, seleccione el colaborador y ejecute la liquidacion."));
+
+        JPanel formulario = new JPanel(new GridBagLayout());
+        formulario.setOpaque(false);
+        GridBagConstraints gbc = new GridBagConstraints();
         gbc.gridx = 0;
-        gbc.gridy = fila;
-        gbc.gridwidth = 1;
-        panel.add(new JLabel(etiqueta), gbc);
-        gbc.gridx = 1;
-        panel.add(campo, gbc);
+        gbc.gridy = 0;
+        gbc.insets = new Insets(0, 0, 16, 0);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.weightx = 1;
+        formulario.add(crearBloqueCampo("Empleado activo", cmbEmpleados), gbc);
+
+        gbc.gridy++;
+        formulario.add(crearBloqueCampo("Periodo", spPeriodo), gbc);
+
+        gbc.gridy++;
+        formulario.add(chkEnviarAutomatico, gbc);
+
+        JPanel acciones = new JPanel(new GridLayout(3, 2, 10, 10));
+        acciones.setOpaque(false);
+        acciones.add(btnGenerar);
+        acciones.add(btnExportarSeleccionada);
+        acciones.add(btnExportarGeneral);
+        acciones.add(btnEnviarCorreo);
+        acciones.add(btnRecargar);
+
+        tarjeta.add(encabezado, BorderLayout.NORTH);
+        tarjeta.add(formulario, BorderLayout.CENTER);
+        tarjeta.add(acciones, BorderLayout.SOUTH);
+        return tarjeta;
+    }
+
+    private JComponent crearTarjetaDetalle() {
+        PanelRedondeado tarjeta = new PanelRedondeado(TemaVisual.SUPERFICIE, 26);
+        tarjeta.setLayout(new BorderLayout(0, 14));
+        tarjeta.setBorder(BorderFactory.createEmptyBorder(24, 24, 24, 24));
+
+        JPanel encabezado = new JPanel();
+        encabezado.setOpaque(false);
+        encabezado.setLayout(new BoxLayout(encabezado, BoxLayout.Y_AXIS));
+        encabezado.add(TemaVisual.crearTituloSeccion("Resumen operativo"));
+        encabezado.add(Box.createVerticalStrut(6));
+        encabezado.add(TemaVisual.crearSubtitulo("Visualice el impacto de la nomina seleccionada antes de exportar o enviar."));
+
+        JScrollPane scroll = new JScrollPane(panelDetalle);
+        TemaVisual.estilizarScroll(scroll);
+
+        tarjeta.add(encabezado, BorderLayout.NORTH);
+        tarjeta.add(scroll, BorderLayout.CENTER);
+        return tarjeta;
+    }
+
+    private JComponent crearTarjetaHistorial() {
+        PanelRedondeado tarjeta = new PanelRedondeado(TemaVisual.SUPERFICIE, 26);
+        tarjeta.setLayout(new BorderLayout(0, 14));
+        tarjeta.setBorder(BorderFactory.createEmptyBorder(24, 24, 24, 24));
+        tarjeta.setPreferredSize(new Dimension(0, 340));
+
+        JPanel encabezado = new JPanel(new BorderLayout());
+        encabezado.setOpaque(false);
+        JPanel textos = new JPanel();
+        textos.setOpaque(false);
+        textos.setLayout(new BoxLayout(textos, BoxLayout.Y_AXIS));
+        textos.add(TemaVisual.crearTituloSeccion("Historial de nominas"));
+        textos.add(Box.createVerticalStrut(6));
+        lblResumenPeriodo = new JLabel("Cargando historial...");
+        lblResumenPeriodo.setFont(TemaVisual.fuente(Font.PLAIN, 13));
+        lblResumenPeriodo.setForeground(TemaVisual.TEXTO_SUAVE);
+        textos.add(lblResumenPeriodo);
+        encabezado.add(textos, BorderLayout.WEST);
+
+        JPanel ayuda = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 0));
+        ayuda.setOpaque(false);
+        JLabel soporte = new JLabel("Use la tabla para regenerar PDF o reenviar comprobantes.");
+        soporte.setFont(TemaVisual.fuente(Font.PLAIN, 12));
+        soporte.setForeground(TemaVisual.TEXTO_SUAVE);
+        ayuda.add(soporte);
+        encabezado.add(ayuda, BorderLayout.EAST);
+
+        JScrollPane scroll = new JScrollPane(tabla);
+        TemaVisual.estilizarScroll(scroll);
+
+        tarjeta.add(encabezado, BorderLayout.NORTH);
+        tarjeta.add(scroll, BorderLayout.CENTER);
+        return tarjeta;
+    }
+
+    private JPanel crearBloqueCampo(String etiqueta, JComponent campo) {
+        JPanel bloque = new JPanel();
+        bloque.setOpaque(false);
+        bloque.setLayout(new BoxLayout(bloque, BoxLayout.Y_AXIS));
+        bloque.add(TemaVisual.crearEtiquetaCampo(etiqueta));
+        bloque.add(Box.createVerticalStrut(8));
+        bloque.add(campo);
+        return bloque;
     }
 }

@@ -2,9 +2,10 @@
 
 ## Estructura
 
-- `app/`: arranque y contenedor de dependencias.
-- `presentacion/`: `LoginFrame`, `MainFrame`, `EmpleadoPanel`, `NominaPanel`.
+- `presentacion/`: arranque, composicion, frames y paneles principales.
 - `presentacion/controladores/`: controladores MVC para UI.
+- `presentacion/componentes/`: tarjetas, gradientes y renderizadores reutilizables.
+- `presentacion/estilo/`: paleta y reglas visuales compartidas.
 - `logica/`: servicios de autenticacion, empleados, nomina, reportes y correo.
 - `datos/`: repositorios basados en archivos `.txt`.
 - `utilidades/`: constantes, rutas, logger, seguridad, formato y serializacion.

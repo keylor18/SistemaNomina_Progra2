@@ -43,7 +43,7 @@ public class LoginController {
                 contexto.getEmpleadoService(), contexto.getNominaService(),
                 contexto.getReporteNominaService(), contexto.getCorreoService());
         new EmpleadoController(mainFrame.getEmpleadoPanel(), contexto.getEmpleadoService(),
-                nominaController::recargarEmpleados);
+                nominaController::recargarTodo);
         mainFrame.setVisible(true);
         loginFrame.dispose();
     }

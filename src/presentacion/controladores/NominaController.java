@@ -38,8 +38,7 @@ public class NominaController {
         this.reporteNominaService = reporteNominaService;
         this.correoService = correoService;
         configurarEventos();
-        recargarEmpleados();
-        recargarNominas();
+        recargarTodo();
     }
 
     public final void recargarEmpleados() {
@@ -51,12 +50,17 @@ public class NominaController {
         }
     }
 
+    public final void recargarTodo() {
+        recargarEmpleados();
+        recargarNominas();
+    }
+
     private void configurarEventos() {
         panel.setAccionGenerar(e -> generarNomina());
         panel.setAccionExportarSeleccionada(e -> exportarSeleccionada());
         panel.setAccionExportarGeneral(e -> exportarGeneral());
         panel.setAccionEnviarCorreo(e -> enviarCorreo());
-        panel.setAccionRecargar(e -> recargarNominas());
+        panel.setAccionRecargar(e -> recargarTodo());
         panel.setSelectionListener(e -> {
             if (!e.getValueIsAdjusting()) {
                 panel.mostrarDetalleNomina(panel.getNominaSeleccionada());

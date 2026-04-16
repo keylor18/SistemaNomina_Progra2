@@ -61,6 +61,7 @@ public class NominaPanel extends JPanel {
     private final TarjetaMetrica tarjetaBruto;
     private final TarjetaMetrica tarjetaNeto;
     private final TarjetaMetrica tarjetaCosto;
+    private final JLabel lblEstadoGeneracion;
     private JLabel lblResumenPeriodo;
     private List<Nomina> nominasTabla;
 
@@ -77,6 +78,7 @@ public class NominaPanel extends JPanel {
         add(crearResumenSuperior(), BorderLayout.NORTH);
 
         cmbEmpleados = new JComboBox<>();
+        cmbEmpleados.setMaximumRowCount(8);
         spPeriodo = new JSpinner(new SpinnerDateModel());
         spPeriodo.setEditor(new JSpinner.DateEditor(spPeriodo, "MM/yyyy"));
         chkEnviarAutomatico = new JCheckBox("Enviar comprobante al correo del empleado inmediatamente");
@@ -85,6 +87,9 @@ public class NominaPanel extends JPanel {
         btnExportarGeneral = new JButton("PDF general");
         btnEnviarCorreo = new JButton("Enviar correo");
         btnRecargar = new JButton("Recargar historial");
+        lblEstadoGeneracion = new JLabel("Cargando colaboradores activos...");
+        lblEstadoGeneracion.setFont(TemaVisual.fuente(Font.PLAIN, 12));
+        lblEstadoGeneracion.setForeground(TemaVisual.TEXTO_SUAVE);
 
         TemaVisual.estilizarCombo(cmbEmpleados);
         TemaVisual.estilizarSpinner(spPeriodo);
@@ -121,6 +126,7 @@ public class NominaPanel extends JPanel {
         superior.setBorder(BorderFactory.createEmptyBorder());
         superior.setDividerLocation(470);
         superior.setDividerSize(12);
+        superior.setResizeWeight(0.48);
 
         JPanel centro = new JPanel(new BorderLayout(18, 18));
         centro.setOpaque(false);
@@ -157,6 +163,20 @@ public class NominaPanel extends JPanel {
         cmbEmpleados.removeAllItems();
         for (Empleado empleado : empleados) {
             cmbEmpleados.addItem(empleado);
+        }
+        boolean hayEmpleados = !empleados.isEmpty();
+        btnGenerar.setEnabled(hayEmpleados);
+        chkEnviarAutomatico.setEnabled(hayEmpleados);
+        cmbEmpleados.setEnabled(hayEmpleados);
+        if (hayEmpleados) {
+            cmbEmpleados.setSelectedIndex(0);
+            lblEstadoGeneracion.setForeground(TemaVisual.EXITO);
+            lblEstadoGeneracion.setText(empleados.size() == 1
+                    ? "1 colaborador activo disponible para generar nomina."
+                    : empleados.size() + " colaboradores activos disponibles para generar nomina.");
+        } else {
+            lblEstadoGeneracion.setForeground(TemaVisual.PELIGRO);
+            lblEstadoGeneracion.setText("No hay colaboradores activos. Registre o active uno en la pestana Colaboradores.");
         }
     }
 
@@ -299,6 +319,10 @@ public class NominaPanel extends JPanel {
         gbc.gridy++;
         formulario.add(chkEnviarAutomatico, gbc);
 
+        gbc.gridy++;
+        gbc.insets = new Insets(8, 0, 8, 0);
+        formulario.add(lblEstadoGeneracion, gbc);
+
         JPanel acciones = new JPanel(new GridLayout(3, 2, 10, 10));
         acciones.setOpaque(false);
         acciones.add(btnGenerar);
@@ -310,7 +334,14 @@ public class NominaPanel extends JPanel {
         tarjeta.add(encabezado, BorderLayout.NORTH);
         tarjeta.add(formulario, BorderLayout.CENTER);
         tarjeta.add(acciones, BorderLayout.SOUTH);
-        return tarjeta;
+
+        JScrollPane scroll = new JScrollPane(tarjeta);
+        scroll.setBorder(BorderFactory.createEmptyBorder());
+        scroll.setOpaque(false);
+        scroll.getViewport().setOpaque(false);
+        scroll.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+        scroll.getVerticalScrollBar().setUnitIncrement(16);
+        return scroll;
     }
 
     private JComponent crearTarjetaDetalle() {
@@ -337,7 +368,7 @@ public class NominaPanel extends JPanel {
         PanelRedondeado tarjeta = new PanelRedondeado(TemaVisual.SUPERFICIE, 26);
         tarjeta.setLayout(new BorderLayout(0, 14));
         tarjeta.setBorder(BorderFactory.createEmptyBorder(24, 24, 24, 24));
-        tarjeta.setPreferredSize(new Dimension(0, 340));
+        tarjeta.setPreferredSize(new Dimension(0, 310));
 
         JPanel encabezado = new JPanel(new BorderLayout());
         encabezado.setOpaque(false);

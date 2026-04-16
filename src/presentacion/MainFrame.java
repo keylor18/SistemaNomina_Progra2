@@ -28,7 +28,7 @@ public class MainFrame extends JFrame {
     private final NominaPanel nominaPanel;
 
     public MainFrame(Usuario usuario) {
-        setTitle("Examen2_Programa2");
+        setTitle("SistemaNomina_Progra2");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setMinimumSize(new Dimension(1260, 820));
         setSize(1320, 860);
@@ -63,7 +63,7 @@ public class MainFrame extends JFrame {
         bloqueTitulo.setOpaque(false);
         bloqueTitulo.setLayout(new BoxLayout(bloqueTitulo, BoxLayout.Y_AXIS));
 
-        JLabel nombre = new JLabel("Examen2_Programa2");
+        JLabel nombre = new JLabel("SistemaNomina_Progra2");
         nombre.setFont(TemaVisual.fuente(Font.BOLD, 28));
         nombre.setForeground(java.awt.Color.WHITE);
 

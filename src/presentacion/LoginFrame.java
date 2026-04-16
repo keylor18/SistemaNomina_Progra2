@@ -34,7 +34,7 @@ public class LoginFrame extends JFrame {
     private JLabel lblEstado;
 
     public LoginFrame() {
-        setTitle("Examen2_Programa2");
+        setTitle("SistemaNomina_Progra2");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(new Dimension(1040, 640));
         setMinimumSize(new Dimension(980, 600));
@@ -83,7 +83,7 @@ public class LoginFrame extends JFrame {
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
         panel.setBorder(BorderFactory.createEmptyBorder(42, 42, 42, 42));
 
-        JLabel marca = new JLabel("Examen2_Programa2");
+        JLabel marca = new JLabel("SistemaNomina_Progra2");
         marca.setFont(TemaVisual.fuente(Font.BOLD, 13));
         marca.setForeground(new Color(227, 213, 191));
 

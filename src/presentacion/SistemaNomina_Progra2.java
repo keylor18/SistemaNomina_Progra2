@@ -10,11 +10,11 @@ import utilidades.RegistroLogger;
 import utilidades.SistemaArchivosUtil;
 
 /**
- * Punto de entrada principal del proyecto Examen2_Programa2.
+ * Punto de entrada principal del proyecto SistemaNomina_Progra2.
  */
-public final class Examen2_Programa2 {
+public final class SistemaNomina_Progra2 {
 
-    private Examen2_Programa2() {
+    private SistemaNomina_Progra2() {
     }
 
     public static void main(String[] args) {

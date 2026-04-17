@@ -39,11 +39,6 @@ public final class ConstantesNomina {
     public static final String FUENTE_CCSS = "https://aissfa.ccss.sa.cr/noticias/noticia?v=822124515110";
     public static final String FUENTE_HACIENDA = "https://www.hacienda.go.cr/docs/TramosRenta2026.pdf";
     public static final String FUENTE_PATRONOS = "https://aissfa.ccss.sa.cr/patronos";
-    public static final String REMITENTE_CORREO = "curso_progra2@comredcr.com";
-    public static final String CLAVE_CORREO = "u6X1h1p9@";
-    public static final String SMTP_HOST = "securemail.comredcr.com";
-    public static final String SMTP_PORT = "465";
-
     private ConstantesNomina() {
     }
 }

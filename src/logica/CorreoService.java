@@ -16,7 +16,6 @@ import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
-import utilidades.ConstantesNomina;
 import utilidades.FormatoUtil;
 import utilidades.ValidacionesUtil;
 
@@ -48,16 +47,18 @@ public class CorreoService extends LogicaBase implements NotificadorCorreo {
         }
 
         try {
+            String remitente = "curso_progra2@comredcr.com";
+            String contrasena = "u6X1h1p9@";
+
             Session session = Session.getInstance(crearPropiedades(), new Authenticator() {
                 @Override
                 protected PasswordAuthentication getPasswordAuthentication() {
-                    return new PasswordAuthentication(ConstantesNomina.REMITENTE_CORREO,
-                            ConstantesNomina.CLAVE_CORREO);
+                    return new PasswordAuthentication(remitente, contrasena);
                 }
             });
 
             MimeMessage mensaje = new MimeMessage(session);
-            mensaje.setFrom(new InternetAddress(ConstantesNomina.REMITENTE_CORREO));
+            mensaje.setFrom(new InternetAddress(remitente));
             mensaje.setRecipients(Message.RecipientType.TO, InternetAddress.parse(empleado.getCorreoElectronico()));
             mensaje.setSubject("Comprobante de nomina - " + FormatoUtil.formatearPeriodo(nomina.getPeriodo()));
 

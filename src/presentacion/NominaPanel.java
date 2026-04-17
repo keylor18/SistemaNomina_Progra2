@@ -33,6 +33,7 @@ import javax.swing.JSplitPane;
 import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
 import javax.swing.SpinnerDateModel;
+import javax.swing.SwingUtilities;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.table.DefaultTableModel;
 import presentacion.componentes.PanelRedondeado;
@@ -121,18 +122,33 @@ public class NominaPanel extends JPanel {
         panelDetalle.setFont(TemaVisual.fuente(Font.PLAIN, 13));
         mostrarDetalleNomina(null);
 
-        JSplitPane superior = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, crearTarjetaGeneracion(), crearTarjetaDetalle());
+        JComponent tarjetaGeneracion = crearTarjetaGeneracion();
+        JComponent tarjetaDetalle = crearTarjetaDetalle();
+        tarjetaGeneracion.setMinimumSize(new Dimension(360, 300));
+        tarjetaDetalle.setMinimumSize(new Dimension(360, 300));
+
+        JSplitPane superior = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, tarjetaGeneracion, tarjetaDetalle);
         superior.setOpaque(false);
         superior.setBorder(BorderFactory.createEmptyBorder());
-        superior.setDividerLocation(470);
         superior.setDividerSize(12);
         superior.setResizeWeight(0.48);
+        superior.setContinuousLayout(true);
 
-        JPanel centro = new JPanel(new BorderLayout(18, 18));
-        centro.setOpaque(false);
-        centro.add(superior, BorderLayout.CENTER);
-        centro.add(crearTarjetaHistorial(), BorderLayout.SOUTH);
-        add(centro, BorderLayout.CENTER);
+        JComponent tarjetaHistorial = crearTarjetaHistorial();
+        tarjetaHistorial.setMinimumSize(new Dimension(0, 280));
+
+        JSplitPane contenido = new JSplitPane(JSplitPane.VERTICAL_SPLIT, superior, tarjetaHistorial);
+        contenido.setOpaque(false);
+        contenido.setBorder(BorderFactory.createEmptyBorder());
+        contenido.setDividerSize(12);
+        contenido.setResizeWeight(0.42);
+        contenido.setContinuousLayout(true);
+        add(contenido, BorderLayout.CENTER);
+
+        SwingUtilities.invokeLater(() -> {
+            superior.setDividerLocation(0.46);
+            contenido.setDividerLocation(0.40);
+        });
     }
 
     public void setAccionGenerar(ActionListener listener) {
@@ -341,6 +357,7 @@ public class NominaPanel extends JPanel {
         scroll.getViewport().setOpaque(false);
         scroll.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
         scroll.getVerticalScrollBar().setUnitIncrement(16);
+        scroll.setPreferredSize(new Dimension(430, 330));
         return scroll;
     }
 
@@ -361,6 +378,7 @@ public class NominaPanel extends JPanel {
 
         tarjeta.add(encabezado, BorderLayout.NORTH);
         tarjeta.add(scroll, BorderLayout.CENTER);
+        tarjeta.setPreferredSize(new Dimension(430, 330));
         return tarjeta;
     }
 
@@ -368,7 +386,7 @@ public class NominaPanel extends JPanel {
         PanelRedondeado tarjeta = new PanelRedondeado(TemaVisual.SUPERFICIE, 26);
         tarjeta.setLayout(new BorderLayout(0, 14));
         tarjeta.setBorder(BorderFactory.createEmptyBorder(24, 24, 24, 24));
-        tarjeta.setPreferredSize(new Dimension(0, 310));
+        tarjeta.setPreferredSize(new Dimension(0, 360));
 
         JPanel encabezado = new JPanel(new BorderLayout());
         encabezado.setOpaque(false);

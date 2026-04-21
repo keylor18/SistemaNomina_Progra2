@@ -3,3 +3,4 @@ dist/
 nbproject/private/
 reportes/*.pdf
 data/logs.txt
+.DS_Store

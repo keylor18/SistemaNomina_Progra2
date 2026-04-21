@@ -5,6 +5,10 @@ import java.awt.Component;
 import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.event.FocusAdapter;
+import java.awt.event.FocusEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
@@ -116,6 +120,19 @@ public final class TemaVisual {
         campo.setForeground(TEXTO);
         campo.setBorder(BORDE_CAMPO);
         campo.setPreferredSize(new Dimension(220, 42));
+        campo.addFocusListener(new FocusAdapter() {
+            @Override
+            public void focusGained(FocusEvent e) {
+                campo.setBorder(BorderFactory.createCompoundBorder(
+                        BorderFactory.createLineBorder(PRIMARIO, 2, true),
+                        BorderFactory.createEmptyBorder(9, 11, 9, 11)));
+            }
+
+            @Override
+            public void focusLost(FocusEvent e) {
+                campo.setBorder(BORDE_CAMPO);
+            }
+        });
     }
 
     /**
@@ -255,6 +272,16 @@ public final class TemaVisual {
         return BorderFactory.createEmptyBorder(20, 22, 20, 22);
     }
 
+    /**
+     * Convierte un Color AWT a su representacion hexadecimal CSS.
+     *
+     * @param c color a convertir
+     * @return cadena con formato #rrggbb
+     */
+    public static String colorHex(Color c) {
+        return String.format("#%02x%02x%02x", c.getRed(), c.getGreen(), c.getBlue());
+    }
+
     private static void instalarNimbusSiExiste() {
         try {
             for (UIManager.LookAndFeelInfo info : UIManager.getInstalledLookAndFeels()) {
@@ -276,6 +303,17 @@ public final class TemaVisual {
         boton.setFont(fuente(Font.BOLD, 13));
         boton.setBorder(BorderFactory.createEmptyBorder(10, 16, 10, 16));
         boton.setPreferredSize(new Dimension(160, 42));
+        boton.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                boton.setBackground(fondo.darker());
+            }
+
+            @Override
+            public void mouseExited(MouseEvent e) {
+                boton.setBackground(fondo);
+            }
+        });
     }
 
     private static final class RendererBaseTabla extends DefaultTableCellRenderer {
@@ -286,7 +324,7 @@ public final class TemaVisual {
             super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
             setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 10));
             setFont(TemaVisual.fuente(Font.PLAIN, 13));
-            setForeground(isSelected ? TEXTO : TEXTO);
+            setForeground(isSelected ? PRIMARIO_OSCURO : TEXTO);
             setBackground(isSelected ? new Color(225, 238, 235) : Color.WHITE);
             return this;
         }

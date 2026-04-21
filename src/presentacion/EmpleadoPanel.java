@@ -136,9 +136,9 @@ public class EmpleadoPanel extends JPanel {
         JSplitPane split = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, crearTarjetaFormulario(), crearTarjetaTabla());
         split.setOpaque(false);
         split.setBorder(BorderFactory.createEmptyBorder());
-        split.setDividerLocation(420);
+        split.setDividerLocation(500);
         split.setDividerSize(12);
-        split.setResizeWeight(0.42);
+        split.setResizeWeight(0.46);
         add(split, BorderLayout.CENTER);
     }
 

@@ -1,10 +1,10 @@
-# SistemaNomina_Progra2
+# Sistema Nomina Progra2
 
 > Aplicacion de escritorio en Java Swing para administrar colaboradores, calcular nomina, generar comprobantes PDF y enviar resultados por correo electronico desde una sola interfaz.
 
 ---
 
-## Vista General
+## Explicación General
 
 SistemaNomina_Progra2 es un proyecto orientado a la gestion administrativa de personal y planilla. El sistema trabaja con persistencia local en archivos `.txt`, aplica reglas de negocio para empleados y nomina, y presenta todo el flujo en una interfaz de escritorio construida con Swing.
 
@@ -117,16 +117,6 @@ La aplicacion esta organizada por capas para separar interfaz, logica y persiste
 | `src/excepciones/` | Excepciones personalizadas |
 | `src/utilidades/` | Hashing, rutas, formato, constantes y logging |
 
-### Flujo tecnico resumido
-
-```text
-LoginFrame -> LoginController -> AutenticacionService -> UsuarioRepositorioTxt
-MainFrame -> EmpleadoController -> EmpleadoService -> EmpleadoRepositorioTxt
-MainFrame -> NominaController -> NominaService -> NominaRepositorioTxt
-NominaController -> ReporteNominaService -> reportes/*.pdf
-NominaController -> CorreoService -> envio de comprobante
-```
-
 ---
 
 ## Flujo De Uso
@@ -162,26 +152,6 @@ Si `data/usuarios.txt` esta vacio, el sistema crea automaticamente este usuario:
 - Usuario: `admin`
 - Contrasena: `Admin123`
 - Rol: `ADMIN`
-
----
-
-## Compilacion, Pruebas Y Ejecucion
-
-### Con Apache Ant
-
-```bash
-ant clean test
-ant run
-ant javadoc
-```
-
-### Si usa el Ant incluido con NetBeans en Windows
-
-```powershell
-& "C:\Program Files\netbeans\extide\ant\bin\ant.bat" clean test
-& "C:\Program Files\netbeans\extide\ant\bin\ant.bat" run
-& "C:\Program Files\netbeans\extide\ant\bin\ant.bat" javadoc
-```
 
 ---
 

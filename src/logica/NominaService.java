@@ -102,6 +102,11 @@ public class NominaService extends LogicaBase implements CalculadoraNomina {
             throws PersistenciaException, ValidacionException, EntidadNoEncontradaException {
         Empleado empleado = empleadoRepositorio.buscarPorId(empleadoId)
                 .orElseThrow(() -> new EntidadNoEncontradaException("El empleado seleccionado no existe."));
+        // Validar que no exista una nómina previa para evitar duplicados
+        List<Nomina> existentes = listarPorPeriodo(periodo);
+        if (existentes.stream().anyMatch(n -> n.getEmpleadoId().equals(empleadoId))) {
+            throw new ValidacionException("Ya existe una nómina para este empleado en el período seleccionado.");
+        }
         Nomina nomina = calcularNomina(empleado, periodo);
         nominaRepositorio.guardar(nomina);
         return nomina;

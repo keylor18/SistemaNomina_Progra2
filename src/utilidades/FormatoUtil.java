@@ -47,7 +47,10 @@ public final class FormatoUtil {
         String normalizado = valor.trim()
                 .replace(" ", "")
                 .replace("\u00A0", "")
-                .replace("₡", "");
+                // Acepta el simbolo correcto de colones y una variante mojibake
+                // frecuente al copiar texto desde fuentes mal codificadas.
+                .replace("\u20A1", "")
+                .replace("â‚¡", "");
         if (normalizado.isEmpty()) {
             throw new NumberFormatException("El monto es obligatorio.");
         }

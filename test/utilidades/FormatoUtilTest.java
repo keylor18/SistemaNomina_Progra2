@@ -20,6 +20,11 @@ public class FormatoUtilTest {
 
     @Test
     public void debeParsearMontoConFormatoLocalCompleto() {
-        assertEquals(450000.50, FormatoUtil.parsearMonto("₡450.000,50"), 0.001);
+        assertEquals(450000.50, FormatoUtil.parsearMonto("\u20A1450.000,50"), 0.001);
+    }
+
+    @Test
+    public void debeParsearMontoConSimboloCorruptoPorCompatibilidad() {
+        assertEquals(450000.50, FormatoUtil.parsearMonto("â‚¡450.000,50"), 0.001);
     }
 }

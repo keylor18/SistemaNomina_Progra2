@@ -33,9 +33,10 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.text.JTextComponent;
 import presentacion.componentes.PanelRedondeado;
 import presentacion.estilo.TemaVisual;
+import utilidades.ConstantesSeguridad;
 
 /**
- * Pantalla de autenticacion del sistema.
+ * Pantalla de autenticación del sistema.
  */
 public class LoginFrame extends JFrame {
 
@@ -66,7 +67,7 @@ public class LoginFrame extends JFrame {
     private JLabel lblEstado;
 
     public LoginFrame() {
-        setTitle("SistemaNomina_Progra2");
+        setTitle("Sistema Nómina");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(new Dimension(ANCHO_VENTANA, ALTURA_VENTANA));
         setMinimumSize(new Dimension(ANCHO_MINIMO_VENTANA, ALTURA_MINIMA_VENTANA));
@@ -128,7 +129,65 @@ public class LoginFrame extends JFrame {
     }
 
     public void mostrarMensaje(String mensaje) {
-        JOptionPane.showMessageDialog(this, mensaje);
+        JOptionPane.showMessageDialog(this, mensaje, "Información", JOptionPane.INFORMATION_MESSAGE);
+    }
+
+    public void mostrarMensajeError(String mensaje) {
+        JOptionPane.showMessageDialog(this, mensaje, "Validación", JOptionPane.ERROR_MESSAGE);
+    }
+
+    public boolean mostrarAvisoCredencialesPorDefecto() {
+        String mensaje = "<html><div style='width: 330px;'>"
+                + "Estás ingresando con las credenciales iniciales del sistema."
+                + "<br><br><b>Recomendación:</b> cambia la contraseña por una clave más segura antes de continuar."
+                + "<br><br>Puedes hacerlo ahora o dejarlo para más tarde."
+                + "</div></html>";
+        Object[] opciones = {"Cambiar ahora", "Más tarde"};
+        int seleccion = JOptionPane.showOptionDialog(
+                this,
+                mensaje,
+                "Credenciales por defecto",
+                JOptionPane.DEFAULT_OPTION,
+                JOptionPane.WARNING_MESSAGE,
+                null,
+                opciones,
+                opciones[0]
+        );
+        return seleccion == 0;
+    }
+
+    public String solicitarNuevaContrasenaSegura() {
+        while (true) {
+            JPasswordField txtNuevaContrasena = new JPasswordField(18);
+            JPasswordField txtConfirmacion = new JPasswordField(18);
+            txtNuevaContrasena.setEchoChar('\u2022');
+            txtConfirmacion.setEchoChar('\u2022');
+
+            JPanel panel = crearPanelCambioContrasena(txtNuevaContrasena, txtConfirmacion);
+            Object[] opciones = {"Actualizar ahora", "Más tarde"};
+            int seleccion = JOptionPane.showOptionDialog(
+                    this,
+                    panel,
+                    "Actualizar contraseña",
+                    JOptionPane.DEFAULT_OPTION,
+                    JOptionPane.PLAIN_MESSAGE,
+                    null,
+                    opciones,
+                    opciones[0]
+            );
+
+            if (seleccion != 0) {
+                return null;
+            }
+
+            String nuevaContrasena = new String(txtNuevaContrasena.getPassword());
+            String confirmacion = new String(txtConfirmacion.getPassword());
+            if (!nuevaContrasena.equals(confirmacion)) {
+                mostrarMensajeError("La confirmación de la contraseña no coincide.");
+                continue;
+            }
+            return nuevaContrasena;
+        }
     }
 
     private JPanel crearPanelAcceso() {
@@ -150,8 +209,8 @@ public class LoginFrame extends JFrame {
         subtitulo.setFont(TemaVisual.fuente(Font.PLAIN, 12));
         subtitulo.setForeground(TEXTO_SECUNDARIO);
 
-        txtUsuario = new JTextField("admin");
-        txtContrasena = new JPasswordField("Admin123");
+        txtUsuario = new JTextField(ConstantesSeguridad.USUARIO_ADMIN_POR_DEFECTO);
+        txtContrasena = new JPasswordField(ConstantesSeguridad.CONTRASENA_ADMIN_POR_DEFECTO);
         txtContrasena.setEchoChar('\u2022');
         prepararCampo(txtUsuario);
         prepararCampo(txtContrasena);
@@ -229,8 +288,10 @@ public class LoginFrame extends JFrame {
         titulo.setForeground(TEXTO_TITULO);
 
         String color = TemaVisual.colorHex(TEXTO_INFO);
-        JLabel detalle = new JLabel("<html>Usuario: <font color='" + color + "'><b>admin</b></font>"
-                + " &nbsp;-&nbsp; Contraseña: <font color='" + color + "'><b>Admin123</b></font></html>");
+        JLabel detalle = new JLabel("<html>Usuario: <font color='" + color + "'><b>"
+                + ConstantesSeguridad.USUARIO_ADMIN_POR_DEFECTO + "</b></font>"
+                + " &nbsp;-&nbsp; Contraseña: <font color='" + color + "'><b>"
+                + ConstantesSeguridad.CONTRASENA_ADMIN_POR_DEFECTO + "</b></font></html>");
         detalle.setFont(TemaVisual.fuente(Font.PLAIN, 11));
         detalle.setForeground(TEXTO_SECUNDARIO);
 
@@ -245,6 +306,62 @@ public class LoginFrame extends JFrame {
         panel.setPreferredSize(tamanoFinal);
         panel.setMinimumSize(tamanoFinal);
         panel.setMaximumSize(tamanoFinal);
+        return panel;
+    }
+
+    private JPanel crearPanelCambioContrasena(JPasswordField txtNuevaContrasena, JPasswordField txtConfirmacion) {
+        JPanel panel = new JPanel(new GridBagLayout());
+        panel.setOpaque(false);
+
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.anchor = GridBagConstraints.WEST;
+        gbc.insets = new Insets(0, 0, 8, 0);
+
+        JLabel encabezado = new JLabel("<html><b>Actualiza la contraseña del administrador</b></html>");
+        encabezado.setFont(TemaVisual.fuente(Font.BOLD, 13));
+        panel.add(encabezado, gbc);
+
+        gbc.gridy++;
+        JLabel descripcion = new JLabel("<html><div style='width:300px;'>"
+                + "Estás usando la clave inicial del sistema. Por seguridad, se recomienda cambiarla antes de continuar."
+                + "</div></html>");
+        descripcion.setFont(TemaVisual.fuente(Font.PLAIN, 12));
+        panel.add(descripcion, gbc);
+
+        gbc.gridy++;
+        gbc.insets = new Insets(10, 0, 4, 0);
+        panel.add(new JLabel("Nueva contraseña"), gbc);
+
+        gbc.gridy++;
+        gbc.insets = new Insets(0, 0, 8, 0);
+        txtNuevaContrasena.setColumns(18);
+        panel.add(txtNuevaContrasena, gbc);
+
+        gbc.gridy++;
+        gbc.insets = new Insets(4, 0, 4, 0);
+        panel.add(new JLabel("Confirmar contraseña"), gbc);
+
+        gbc.gridy++;
+        gbc.insets = new Insets(0, 0, 10, 0);
+        txtConfirmacion.setColumns(18);
+        panel.add(txtConfirmacion, gbc);
+
+        gbc.gridy++;
+        gbc.insets = new Insets(0, 0, 0, 0);
+        JLabel requisitos = new JLabel("<html><div style='width:300px;'>"
+                + "<b>Requisitos mínimos</b><br>"
+                + "- Mínimo 10 caracteres<br>"
+                + "- Al menos una mayúscula y una minúscula<br>"
+                + "- Al menos un número<br>"
+                + "- Al menos un carácter especial<br>"
+                + "- Sin palabras comunes de diccionario"
+                + "</div></html>");
+        requisitos.setFont(TemaVisual.fuente(Font.PLAIN, 11));
+        requisitos.setForeground(TEXTO_SECUNDARIO);
+        panel.add(requisitos, gbc);
+
         return panel;
     }
 

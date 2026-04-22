@@ -2,18 +2,31 @@ package presentacion;
 
 import entidades.Usuario;
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Component;
+import java.awt.Container;
+import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.time.LocalDate;
+import java.util.Map;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
+import javax.swing.JButton;
+import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
+import javax.swing.JEditorPane;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JSpinner;
 import javax.swing.JTabbedPane;
+import javax.swing.JTable;
 import presentacion.componentes.PanelGradiente;
 import presentacion.componentes.PanelRedondeado;
 import presentacion.estilo.TemaVisual;
@@ -26,6 +39,7 @@ public class MainFrame extends JFrame {
 
     private final EmpleadoPanel empleadoPanel;
     private final NominaPanel nominaPanel;
+    private JButton btnTema;
 
     public MainFrame(Usuario usuario) {
         setTitle("SistemaNomina_Progra2");
@@ -55,7 +69,7 @@ public class MainFrame extends JFrame {
     }
 
     private Component crearEncabezado(Usuario usuario) {
-        PanelGradiente encabezado = new PanelGradiente(new java.awt.Color(18, 93, 95), new java.awt.Color(11, 55, 56));
+        PanelGradiente encabezado = new PanelGradiente(new Color(18, 93, 95), new Color(11, 55, 56));
         encabezado.setLayout(new BorderLayout(16, 16));
         encabezado.setBorder(BorderFactory.createEmptyBorder(26, 28, 26, 28));
 
@@ -65,18 +79,38 @@ public class MainFrame extends JFrame {
 
         JLabel nombre = new JLabel("SistemaNomina_Progra2");
         nombre.setFont(TemaVisual.fuente(Font.BOLD, 28));
-        nombre.setForeground(java.awt.Color.WHITE);
+        nombre.setForeground(Color.WHITE);
 
         JLabel subtitulo = new JLabel("Operacion administrativa, calculo de planilla, reportes y trazabilidad.");
         subtitulo.setFont(TemaVisual.fuente(Font.PLAIN, 14));
-        subtitulo.setForeground(new java.awt.Color(222, 234, 231));
+        subtitulo.setForeground(new Color(222, 234, 231));
 
         bloqueTitulo.add(nombre);
         bloqueTitulo.add(Box.createVerticalStrut(8));
         bloqueTitulo.add(subtitulo);
 
+        btnTema = new JButton("☽  Oscuro");
+        btnTema.setFocusPainted(false);
+        btnTema.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        btnTema.setBackground(new Color(255, 255, 255, 40));
+        btnTema.setForeground(Color.WHITE);
+        btnTema.setFont(TemaVisual.fuente(Font.BOLD, 13));
+        btnTema.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(new Color(255, 255, 255, 70), 1, true),
+                BorderFactory.createEmptyBorder(8, 14, 8, 14)));
+        btnTema.addMouseListener(new MouseAdapter() {
+            @Override public void mouseEntered(MouseEvent e) {
+                btnTema.setBackground(new Color(255, 255, 255, 65));
+            }
+            @Override public void mouseExited(MouseEvent e) {
+                btnTema.setBackground(new Color(255, 255, 255, 40));
+            }
+        });
+        btnTema.addActionListener(e -> toggleTema());
+
         JPanel bloqueUsuario = new JPanel(new FlowLayout(FlowLayout.RIGHT, 12, 0));
         bloqueUsuario.setOpaque(false);
+        bloqueUsuario.add(btnTema);
         bloqueUsuario.add(crearTarjetaInfo("Usuario", usuario.getNombreCompleto()));
         bloqueUsuario.add(crearTarjetaInfo("Rol", usuario.getRol().name()));
         bloqueUsuario.add(crearTarjetaInfo("Fecha", FormatoUtil.formatearFecha(LocalDate.now())));
@@ -112,8 +146,8 @@ public class MainFrame extends JFrame {
     }
 
     private Component crearTarjetaInfo(String titulo, String valor) {
-        PanelRedondeado tarjeta = new PanelRedondeado(new java.awt.Color(255, 255, 255, 30), 22,
-                new java.awt.Color(255, 255, 255, 40));
+        PanelRedondeado tarjeta = new PanelRedondeado(new Color(255, 255, 255, 30), 22,
+                new Color(255, 255, 255, 40));
         tarjeta.setLayout(new BorderLayout());
         tarjeta.setBorder(BorderFactory.createEmptyBorder(10, 14, 10, 14));
 
@@ -123,14 +157,123 @@ public class MainFrame extends JFrame {
 
         JLabel lblTitulo = new JLabel(titulo);
         lblTitulo.setFont(TemaVisual.fuente(Font.BOLD, 11));
-        lblTitulo.setForeground(new java.awt.Color(230, 237, 234));
+        lblTitulo.setForeground(new Color(230, 237, 234));
         JLabel lblValor = new JLabel(valor);
         lblValor.setFont(TemaVisual.fuente(Font.BOLD, 13));
-        lblValor.setForeground(java.awt.Color.WHITE);
+        lblValor.setForeground(Color.WHITE);
         contenido.add(lblTitulo);
         contenido.add(Box.createVerticalStrut(4));
         contenido.add(lblValor);
         tarjeta.add(contenido, BorderLayout.CENTER);
         return tarjeta;
+    }
+
+    // -------------------------------------------------------------------------
+    // Modo oscuro
+    // -------------------------------------------------------------------------
+
+    private void toggleTema() {
+        boolean nuevoModo = !TemaVisual.isModoOscuro();
+        Map<Color, Color> mapa = TemaVisual.cambiarPaleta(nuevoModo);
+        reaplicarArbol(this, mapa);
+        btnTema.setText(nuevoModo ? "○  Claro" : "☽  Oscuro");
+        repaint();
+    }
+
+    private void reaplicarArbol(Component c, Map<Color, Color> mapa) {
+        // Tarjetas con fondo personalizado (PanelRedondeado)
+        if (c instanceof PanelRedondeado pr) {
+            Color nf = mapa.get(pr.getColorFondo());
+            if (nf != null) pr.setColorFondo(nf);
+            Color nb = mapa.get(pr.getColorBorde());
+            if (nb != null) pr.setColorBorde(nb);
+        } else if (c instanceof JPanel p && p.isOpaque()) {
+            Color nb = mapa.get(p.getBackground());
+            if (nb != null) p.setBackground(nb);
+        }
+
+        // Etiquetas de texto
+        if (c instanceof JLabel l) {
+            Color nf = mapa.get(l.getForeground());
+            if (nf != null) l.setForeground(nf);
+        }
+
+        // Botones (excluye el propio btnTema que vive en el header y tiene colores fijos)
+        if (c instanceof JButton b && b != btnTema) {
+            Color nbg = mapa.get(b.getBackground());
+            if (nbg != null) { b.setBackground(nbg); b.putClientProperty("normalBg", nbg); }
+            Color nfg = mapa.get(b.getForeground());
+            if (nfg != null) b.setForeground(nfg);
+            // Actualiza solo el borde exterior de botones con LineBorder (estilo secundario)
+            if (b.getBorder() instanceof javax.swing.border.CompoundBorder cb2
+                    && cb2.getOutsideBorder() instanceof javax.swing.border.LineBorder) {
+                b.setBorder(BorderFactory.createCompoundBorder(
+                        BorderFactory.createLineBorder(TemaVisual.BORDE, 1, true),
+                        cb2.getInsideBorder()));
+            }
+        }
+
+        // Checkbox
+        if (c instanceof JCheckBox cb) {
+            Color nf = mapa.get(cb.getForeground());
+            if (nf != null) cb.setForeground(nf);
+        }
+
+        // Editor HTML (detalle de nomina)
+        if (c instanceof JEditorPane ep) {
+            ep.setBackground(TemaVisual.isModoOscuro() ? TemaVisual.SUPERFICIE : Color.WHITE);
+        }
+
+        // ScrollPane: viewport y borde
+        if (c instanceof JScrollPane sp) {
+            Color vbg = sp.getViewport().getBackground();
+            if (Color.WHITE.equals(vbg) || mapa.containsKey(vbg)) {
+                sp.getViewport().setBackground(
+                        TemaVisual.isModoOscuro() ? TemaVisual.SUPERFICIE : Color.WHITE);
+            }
+            if (sp.getBorder() instanceof javax.swing.border.LineBorder) {
+                sp.setBorder(BorderFactory.createLineBorder(TemaVisual.BORDE, 1, true));
+            }
+        }
+
+        // Tabla
+        if (c instanceof JTable t) {
+            t.setBackground(TemaVisual.isModoOscuro() ? TemaVisual.SUPERFICIE : Color.WHITE);
+            t.setForeground(TemaVisual.TEXTO);
+            t.setGridColor(TemaVisual.BORDE);
+            t.setSelectionBackground(TemaVisual.isModoOscuro()
+                    ? new Color(48, 82, 78) : new Color(225, 238, 235));
+            t.setSelectionForeground(TemaVisual.TEXTO);
+            t.getTableHeader().setBackground(TemaVisual.SUPERFICIE_SECUNDARIA);
+            t.getTableHeader().setForeground(TemaVisual.TEXTO);
+            t.getTableHeader().repaint();
+        }
+
+        // ComboBox y Spinner
+        if (c instanceof JComboBox<?> cb) {
+            cb.setBackground(TemaVisual.isModoOscuro() ? TemaVisual.SUPERFICIE_SECUNDARIA : Color.WHITE);
+            cb.setForeground(Color.BLACK);
+        }
+        if (c instanceof JSpinner sp) {
+            if (sp.getEditor() instanceof JSpinner.DefaultEditor ed) {
+                ed.getTextField().setBackground(TemaVisual.isModoOscuro()
+                        ? TemaVisual.SUPERFICIE_SECUNDARIA : Color.WHITE);
+                ed.getTextField().setForeground(Color.BLACK);
+            }
+        }
+
+        // Pestanas
+        if (c instanceof JTabbedPane tp) {
+            tp.setBackground(TemaVisual.FONDO_APP);
+            tp.setForeground(TemaVisual.TEXTO);
+        }
+
+        c.repaint();
+
+        if (c instanceof Container cont) {
+            for (Component child : cont.getComponents()) {
+                reaplicarArbol(child, mapa);
+            }
+        }
     }
 }

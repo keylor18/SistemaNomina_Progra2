@@ -61,6 +61,7 @@ public class NominaController {
         panel.setAccionExportarGeneral(e -> exportarGeneral());
         panel.setAccionEnviarCorreo(e -> enviarCorreo());
         panel.setAccionRecargar(e -> recargarTodo());
+        panel.setAccionEliminar(e -> eliminarNomina());
         panel.setSelectionListener(e -> {
             if (!e.getValueIsAdjusting()) {
                 panel.mostrarDetalleNomina(panel.getNominaSeleccionada());
@@ -141,6 +142,33 @@ public class NominaController {
         } catch (PersistenciaException | EntidadNoEncontradaException | PdfException
                 | CorreoException | ValidacionException ex) {
             RegistroLogger.registrarError("Enviar correo de nomina", ex);
+            panel.mostrarError(ex.getMessage());
+        }
+    }
+
+    private void eliminarNomina() {
+        Nomina nomina = panel.getNominaSeleccionada();
+        if (nomina == null) {
+            panel.mostrarError("Seleccione una nomina del historial para eliminar.");
+            return;
+        }
+        int confirmacion = javax.swing.JOptionPane.showConfirmDialog(
+                panel,
+                "¿Esta seguro de que desea eliminar la nomina de " + nomina.getNombreEmpleado()
+                + " del periodo " + utilidades.FormatoUtil.formatearPeriodo(nomina.getPeriodo()) + "?\n"
+                + "Esta accion no se puede deshacer.",
+                "Confirmar eliminacion",
+                javax.swing.JOptionPane.YES_NO_OPTION,
+                javax.swing.JOptionPane.WARNING_MESSAGE);
+        if (confirmacion != javax.swing.JOptionPane.YES_OPTION) {
+            return;
+        }
+        try {
+            nominaService.eliminarNomina(nomina.getId());
+            recargarNominas();
+            panel.mostrarInfo("Nomina eliminada correctamente.");
+        } catch (PersistenciaException | EntidadNoEncontradaException ex) {
+            RegistroLogger.registrarError("Eliminar nomina", ex);
             panel.mostrarError(ex.getMessage());
         }
     }

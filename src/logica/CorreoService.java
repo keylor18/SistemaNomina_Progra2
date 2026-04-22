@@ -70,7 +70,7 @@ public class CorreoService extends LogicaBase implements NotificadorCorreo {
 
                     Salario neto: %s
 
-                    Este mensaje fue generado automaticamente por SistemaNomina_Progra2.
+                    Este mensaje fue generado automaticamente.
                     """
                     .formatted(FormatoUtil.formatearPeriodo(nomina.getPeriodo()),
                             FormatoUtil.formatearMoneda(nomina.getSalarioNeto())));

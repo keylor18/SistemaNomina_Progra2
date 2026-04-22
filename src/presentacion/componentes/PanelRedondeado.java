@@ -14,8 +14,8 @@ import presentacion.estilo.TemaVisual;
 public class PanelRedondeado extends JPanel {
 
     private final int radio;
-    private final Color colorBorde;
-    private final Color colorFondo;
+    private Color colorBorde;
+    private Color colorFondo;
 
     public PanelRedondeado(Color colorFondo, int radio) {
         this(colorFondo, radio, TemaVisual.BORDE);
@@ -27,6 +27,11 @@ public class PanelRedondeado extends JPanel {
         this.colorFondo = colorFondo;
         setOpaque(false);
     }
+
+    public Color getColorFondo() { return colorFondo; }
+    public void setColorFondo(Color c) { colorFondo = c; }
+    public Color getColorBorde() { return colorBorde; }
+    public void setColorBorde(Color c) { colorBorde = c; }
 
     @Override
     protected void paintComponent(Graphics g) {

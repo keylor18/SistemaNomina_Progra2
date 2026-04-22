@@ -167,6 +167,17 @@ public class NominaService extends LogicaBase implements CalculadoraNomina {
     }
 
     /**
+     * Elimina una nomina del historial por su identificador.
+     *
+     * @param nominaId id de la nomina a eliminar
+     * @throws PersistenciaException si falla la persistencia
+     * @throws EntidadNoEncontradaException si la nomina no existe
+     */
+    public void eliminarNomina(String nominaId) throws PersistenciaException, EntidadNoEncontradaException {
+        nominaRepositorio.eliminar(nominaId);
+    }
+
+    /**
      * Lista nominas de un periodo mensual.
      *
      * @param periodo periodo a consultar

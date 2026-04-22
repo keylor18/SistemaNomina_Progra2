@@ -74,8 +74,8 @@ public class EmpleadoPanel extends JPanel {
         setBorder(BorderFactory.createEmptyBorder(6, 4, 4, 4));
         empleadosTabla = new ArrayList<>();
 
-        tarjetaTotal = new TarjetaMetrica("Colaboradores", "0", "Registros totales del catalogo.");
-        tarjetaActivos = new TarjetaMetrica("Activos", "0", "Colaboradores disponibles para nomina.");
+        tarjetaTotal = new TarjetaMetrica("Colaboradores", "0", "Registros totales del catálogo.");
+        tarjetaActivos = new TarjetaMetrica("Activos", "0", "Colaboradores disponibles para nómina.");
         tarjetaPlanilla = new TarjetaMetrica("Base salarial", FormatoUtil.formatearMoneda(0), "Suma mensual de salarios base.");
         add(crearResumenSuperior(), BorderLayout.NORTH);
 
@@ -87,7 +87,7 @@ public class EmpleadoPanel extends JPanel {
         txtCorreo = new JTextField();
         txtSalario = new JTextField();
         spHijos = new JSpinner(new SpinnerNumberModel(0, 0, 20, 1));
-        chkConyuge = new JCheckBox("Conyuge a cargo");
+        chkConyuge = new JCheckBox("Cónyuge a cargo");
         chkActivo = new JCheckBox("Empleado activo", true);
         spFechaIngreso = new JSpinner(new SpinnerDateModel());
         spFechaIngreso.setValue(new Date());
@@ -120,7 +120,7 @@ public class EmpleadoPanel extends JPanel {
         TemaVisual.estilizarBotonSecundario(btnRecargar);
 
         modelo = new DefaultTableModel(new Object[]{
-            "ID", "Cedula", "Nombre", "Puesto", "Departamento", "Correo", "Salario", "Activo"
+            "ID", "Cédula", "Nombre", "Puesto", "Departamento", "Correo", "Salario", "Activo"
         }, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
@@ -209,16 +209,16 @@ public class EmpleadoPanel extends JPanel {
                 empleado.getDepartamento(),
                 empleado.getCorreoElectronico(),
                 FormatoUtil.formatearMoneda(empleado.getSalarioBaseMensual()),
-                empleado.isActivo() ? "Si" : "No"
+                empleado.isActivo() ? "Sí" : "No"
             });
         }
         long activos = empleados.stream().filter(Empleado::isActivo).count();
         double totalPlanilla = empleados.stream().mapToDouble(Empleado::getSalarioBaseMensual).sum();
         tarjetaTotal.actualizar(String.valueOf(empleados.size()), "Registros cargados en memoria.");
-        tarjetaActivos.actualizar(String.valueOf(activos), "Participan en la generacion de nomina.");
+        tarjetaActivos.actualizar(String.valueOf(activos), "Participan en la generación de nómina.");
         tarjetaPlanilla.actualizar(FormatoUtil.formatearMoneda(totalPlanilla), "Suma mensual del salario base.");
         lblResumen.setText(empleados.isEmpty()
-                ? "No hay colaboradores registrados todavia."
+                ? "No hay colaboradores registrados todavía."
                 : "Seleccione un colaborador para editarlo o eliminarlo.");
     }
 
@@ -246,7 +246,7 @@ public class EmpleadoPanel extends JPanel {
     }
 
     public void mostrarInfo(String mensaje) {
-        JOptionPane.showMessageDialog(this, mensaje, "Informacion", JOptionPane.INFORMATION_MESSAGE);
+        JOptionPane.showMessageDialog(this, mensaje, "Información", JOptionPane.INFORMATION_MESSAGE);
     }
 
     public void mostrarError(String mensaje) {
@@ -272,7 +272,7 @@ public class EmpleadoPanel extends JPanel {
         encabezado.setLayout(new BoxLayout(encabezado, BoxLayout.Y_AXIS));
         encabezado.add(TemaVisual.crearTituloSeccion("Ficha del colaborador"));
         encabezado.add(Box.createVerticalStrut(6));
-        encabezado.add(TemaVisual.crearSubtitulo("Complete, actualice o depure el catalogo interno de empleados."));
+        encabezado.add(TemaVisual.crearSubtitulo("Complete, actualice o depure el catálogo interno de empleados."));
 
         JPanel formulario = new JPanel(new GridBagLayout());
         formulario.setOpaque(false);
@@ -285,7 +285,7 @@ public class EmpleadoPanel extends JPanel {
         formulario.add(crearBloqueCampo("ID interno", txtId), gbc);
         gbc.gridx = 1;
         gbc.insets = new Insets(0, 0, 14, 0);
-        formulario.add(crearBloqueCampo("Cedula", txtCedula), gbc);
+        formulario.add(crearBloqueCampo("Cédula", txtCedula), gbc);
 
         gbc.gridy++;
         gbc.gridx = 0;
@@ -304,7 +304,7 @@ public class EmpleadoPanel extends JPanel {
         gbc.gridy++;
         gbc.gridx = 0;
         gbc.gridwidth = 2;
-        formulario.add(crearBloqueCampo("Correo electronico", txtCorreo), gbc);
+        formulario.add(crearBloqueCampo("Correo electrónico", txtCorreo), gbc);
 
         gbc.gridy++;
         gbc.gridwidth = 1;

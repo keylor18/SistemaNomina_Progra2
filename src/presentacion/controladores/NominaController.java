@@ -20,7 +20,7 @@ import presentacion.NominaPanel;
 import utilidades.RegistroLogger;
 
 /**
- * Controlador del flujo de nomina, PDF y correo.
+ * Controlador del flujo de nómina, PDF y correo.
  */
 public class NominaController {
 
@@ -86,11 +86,11 @@ public class NominaController {
             }
             recargarNominas();
             panel.mostrarInfo(panel.isEnviarAutomatico()
-                    ? "Nomina generada, PDF creado y correo enviado."
-                    : "Nomina generada y PDF creado correctamente.");
+                    ? "Nómina generada, PDF creado y correo enviado."
+                    : "Nómina generada y PDF creado correctamente.");
         } catch (PersistenciaException | ValidacionException | EntidadNoEncontradaException
                 | PdfException | CorreoException ex) {
-            RegistroLogger.registrarError("Generar nomina", ex);
+            RegistroLogger.registrarError("Generar nómina", ex);
             panel.mostrarError(ex.getMessage());
         }
     }
@@ -98,7 +98,7 @@ public class NominaController {
     private void exportarSeleccionada() {
         Nomina nomina = panel.getNominaSeleccionada();
         if (nomina == null) {
-            panel.mostrarError("Seleccione una nomina del historial.");
+            panel.mostrarError("Seleccione una nómina del historial.");
             return;
         }
         try {
@@ -116,7 +116,7 @@ public class NominaController {
             YearMonth periodo = panel.getPeriodoSeleccionado();
             List<Nomina> nominas = nominaService.listarPorPeriodo(periodo);
             if (nominas.isEmpty()) {
-                panel.mostrarError("No existen nominas para el periodo seleccionado.");
+                panel.mostrarError("No existen nóminas para el período seleccionado.");
                 return;
             }
             Path ruta = reporteNominaService.generarReporteGeneral(nominas, periodo);
@@ -130,18 +130,18 @@ public class NominaController {
     private void enviarCorreo() {
         Nomina nomina = panel.getNominaSeleccionada();
         if (nomina == null) {
-            panel.mostrarError("Seleccione una nomina del historial.");
+            panel.mostrarError("Seleccione una nómina del historial.");
             return;
         }
         try {
             Empleado empleado = empleadoService.buscarPorId(nomina.getEmpleadoId())
-                    .orElseThrow(() -> new EntidadNoEncontradaException("No se encontro el empleado asociado."));
+                    .orElseThrow(() -> new EntidadNoEncontradaException("No se encontró el empleado asociado."));
             Path ruta = asegurarPdf(nomina);
             correoService.enviarNomina(empleado, nomina, ruta);
             panel.mostrarInfo("Correo enviado correctamente a " + empleado.getCorreoElectronico());
         } catch (PersistenciaException | EntidadNoEncontradaException | PdfException
                 | CorreoException | ValidacionException ex) {
-            RegistroLogger.registrarError("Enviar correo de nomina", ex);
+            RegistroLogger.registrarError("Enviar correo de nómina", ex);
             panel.mostrarError(ex.getMessage());
         }
     }
@@ -149,15 +149,15 @@ public class NominaController {
     private void eliminarNomina() {
         Nomina nomina = panel.getNominaSeleccionada();
         if (nomina == null) {
-            panel.mostrarError("Seleccione una nomina del historial para eliminar.");
+            panel.mostrarError("Seleccione una nómina del historial para eliminar.");
             return;
         }
         int confirmacion = javax.swing.JOptionPane.showConfirmDialog(
                 panel,
-                "¿Esta seguro de que desea eliminar la nomina de " + nomina.getNombreEmpleado()
-                + " del periodo " + utilidades.FormatoUtil.formatearPeriodo(nomina.getPeriodo()) + "?\n"
-                + "Esta accion no se puede deshacer.",
-                "Confirmar eliminacion",
+                "¿Está seguro de que desea eliminar la nómina de " + nomina.getNombreEmpleado()
+                + " del período " + utilidades.FormatoUtil.formatearPeriodo(nomina.getPeriodo()) + "?\n"
+                + "Esta acción no se puede deshacer.",
+                "Confirmar eliminación",
                 javax.swing.JOptionPane.YES_NO_OPTION,
                 javax.swing.JOptionPane.WARNING_MESSAGE);
         if (confirmacion != javax.swing.JOptionPane.YES_OPTION) {
@@ -166,9 +166,9 @@ public class NominaController {
         try {
             nominaService.eliminarNomina(nomina.getId());
             recargarNominas();
-            panel.mostrarInfo("Nomina eliminada correctamente.");
+            panel.mostrarInfo("Nómina eliminada correctamente.");
         } catch (PersistenciaException | EntidadNoEncontradaException ex) {
-            RegistroLogger.registrarError("Eliminar nomina", ex);
+            RegistroLogger.registrarError("Eliminar nómina", ex);
             panel.mostrarError(ex.getMessage());
         }
     }
@@ -178,8 +178,8 @@ public class NominaController {
             panel.setNominas(nominaService.listarNominas());
             panel.mostrarDetalleNomina(panel.getNominaSeleccionada());
         } catch (PersistenciaException ex) {
-            RegistroLogger.registrarError("Listar nominas", ex);
-            panel.mostrarError("No fue posible cargar el historial de nominas.");
+            RegistroLogger.registrarError("Listar nóminas", ex);
+            panel.mostrarError("No fue posible cargar el historial de nóminas.");
         }
     }
 

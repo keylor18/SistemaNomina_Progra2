@@ -6,22 +6,22 @@
 - `presentacion.ContextoAplicacion` inicializa repositorios y servicios.
 - `LoginController` presenta `LoginFrame`.
 
-## 2. Autenticacion
+## 2. Autenticación
 
 - Se leen usuarios desde `usuarios.txt`.
-- Se compara la contrasena con SHA-256.
+- Se compara la contraseña con SHA-256.
 - Se controlan intentos fallidos y bloqueo.
 
-## 3. Gestion de empleados
+## 3. Gestión de empleados
 
 - `EmpleadoPanel` captura datos.
 - `EmpleadoController` valida entradas.
 - `EmpleadoService` aplica reglas de negocio.
 - `EmpleadoRepositorioTxt` persiste el registro.
 
-## 4. Nomina
+## 4. Nómina
 
-- `NominaPanel` solicita empleado y periodo.
+- `NominaPanel` solicita empleado y período.
 - `NominaService` calcula:
   salario bruto,
   deducciones del trabajador,
@@ -30,7 +30,7 @@
   salario neto.
 - `NominaRepositorioTxt` guarda el historial.
 
-## 5. Reporteria y correo
+## 5. Reportería y correo
 
 - `ReporteNominaService` usa iText para PDF individual y general.
 - `CorreoService` usa JavaMail para adjuntar y enviar comprobantes.

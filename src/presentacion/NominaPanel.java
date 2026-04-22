@@ -43,7 +43,7 @@ import presentacion.estilo.TemaVisual;
 import utilidades.FormatoUtil;
 
 /**
- * Panel de calculo, historial y reporteria de nomina.
+ * Panel de cálculo, historial y reportería de nómina.
  */
 public class NominaPanel extends JPanel {
 
@@ -76,10 +76,10 @@ public class NominaPanel extends JPanel {
         setBorder(BorderFactory.createEmptyBorder(14, 14, 14, 14));
         nominasTabla = new ArrayList<>();
 
-        tarjetaRegistros = new TarjetaMetrica("Nominas", "0", "Historial registrado en el sistema.");
+        tarjetaRegistros = new TarjetaMetrica("Nóminas", "0", "Historial registrado en el sistema.");
         tarjetaBruto = new TarjetaMetrica("Bruto total", FormatoUtil.formatearMoneda(0), "Monto salarial del historial visible.");
         tarjetaNeto = new TarjetaMetrica("Neto total", FormatoUtil.formatearMoneda(0), "Pago neto consolidado.");
-        tarjetaCosto = new TarjetaMetrica("Costo empresa", FormatoUtil.formatearMoneda(0), "Bruto mas aportes patronales.");
+        tarjetaCosto = new TarjetaMetrica("Costo empresa", FormatoUtil.formatearMoneda(0), "Bruto más aportes patronales.");
         add(crearResumenSuperior(), BorderLayout.NORTH);
 
         cmbEmpleados = new JComboBox<>();
@@ -87,7 +87,7 @@ public class NominaPanel extends JPanel {
         spPeriodo = new JSpinner(new SpinnerDateModel());
         spPeriodo.setEditor(new JSpinner.DateEditor(spPeriodo, "MM/yyyy"));
         chkEnviarAutomatico = new JCheckBox("Enviar comprobante al correo del empleado inmediatamente");
-        btnGenerar = new JButton("Generar nomina");
+        btnGenerar = new JButton("Generar nómina");
         btnExportarSeleccionada = new JButton("PDF individual");
         btnExportarGeneral = new JButton("PDF general");
         btnEnviarCorreo = new JButton("Enviar correo");
@@ -108,7 +108,7 @@ public class NominaPanel extends JPanel {
         TemaVisual.estilizarBotonPeligro(btnEliminar);
 
         modelo = new DefaultTableModel(new Object[]{
-            "ID", "Empleado", "Periodo", "Bruto", "Deducciones", "Aportes", "Neto", "PDF"
+            "ID", "Empleado", "Período", "Bruto", "Deducciones", "Aportes", "Neto", "PDF"
         }, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
@@ -208,11 +208,11 @@ public class NominaPanel extends JPanel {
             cmbEmpleados.setSelectedIndex(0);
             lblEstadoGeneracion.setForeground(TemaVisual.EXITO);
             lblEstadoGeneracion.setText(empleados.size() == 1
-                    ? "1 colaborador activo disponible para generar nomina."
-                    : empleados.size() + " colaboradores activos disponibles para generar nomina.");
+                    ? "1 colaborador activo disponible para generar nómina."
+                    : empleados.size() + " colaboradores activos disponibles para generar nómina.");
         } else {
             lblEstadoGeneracion.setForeground(TemaVisual.PELIGRO);
-            lblEstadoGeneracion.setText("No hay colaboradores activos. Registre o active uno en la pestana Colaboradores.");
+            lblEstadoGeneracion.setText("No hay colaboradores activos. Registre o active uno en la pestaña Colaboradores.");
         }
     }
 
@@ -247,12 +247,12 @@ public class NominaPanel extends JPanel {
         double totalBruto = nominas.stream().mapToDouble(Nomina::getSalarioBruto).sum();
         double totalNeto = nominas.stream().mapToDouble(Nomina::getSalarioNeto).sum();
         double totalCosto = nominas.stream().mapToDouble(Nomina::getCostoTotalEmpresa).sum();
-        tarjetaRegistros.actualizar(String.valueOf(nominas.size()), "Nominas almacenadas para consulta y reportes.");
+        tarjetaRegistros.actualizar(String.valueOf(nominas.size()), "Nóminas almacenadas para consulta y reportes.");
         tarjetaBruto.actualizar(FormatoUtil.formatearMoneda(totalBruto), "Suma del salario bruto registrado.");
         tarjetaNeto.actualizar(FormatoUtil.formatearMoneda(totalNeto), "Monto neto consolidado del historial.");
         tarjetaCosto.actualizar(FormatoUtil.formatearMoneda(totalCosto), "Costo total acumulado para la empresa.");
         lblResumenPeriodo.setText(nominas.isEmpty()
-                ? "No existen nominas registradas todavia."
+                ? "No existen nóminas registradas todavía."
                 : "Seleccione una fila para revisar su detalle operativo.");
     }
 
@@ -266,17 +266,17 @@ public class NominaPanel extends JPanel {
 
     public void mostrarDetalleNomina(Nomina nomina) {
         nominaDetalle = nomina;
-        String cTexto    = TemaVisual.colorHex(TemaVisual.TEXTO);
-        String cSuave    = TemaVisual.colorHex(TemaVisual.TEXTO_SUAVE);
-        String cFondo    = TemaVisual.colorHex(TemaVisual.SUPERFICIE);
+        String cTexto = TemaVisual.colorHex(TemaVisual.TEXTO);
+        String cSuave = TemaVisual.colorHex(TemaVisual.TEXTO_SUAVE);
+        String cFondo = TemaVisual.colorHex(TemaVisual.SUPERFICIE);
         String cPrimario = TemaVisual.colorHex(TemaVisual.PRIMARIO);
         panelDetalle.setBackground(TemaVisual.isModoOscuro() ? TemaVisual.SUPERFICIE : java.awt.Color.WHITE);
 
         if (nomina == null) {
             panelDetalle.setText("<html><body style='font-family:Segoe UI;padding:16px;"
                     + "color:" + cTexto + ";background:" + cFondo + ";'>"
-                    + "<h2 style='margin-top:0;color:" + cPrimario + ";'>Detalle de nomina</h2>"
-                    + "<p>Seleccione una nomina del historial para visualizar salario bruto, deducciones, "
+                    + "<h2 style='margin-top:0;color:" + cPrimario + ";'>Detalle de nómina</h2>"
+                    + "<p>Seleccione una nómina del historial para visualizar salario bruto, deducciones, "
                     + "aportes patronales, costo total y ruta del comprobante PDF.</p>"
                     + "</body></html>");
             return;
@@ -284,7 +284,7 @@ public class NominaPanel extends JPanel {
         panelDetalle.setText(("<html>"
                 + "<body style='font-family:Segoe UI;padding:16px;color:%s;background:%s;'>"
                 + "<h2 style='margin-top:0;color:%s;'>%s</h2>"
-                + "<p style='color:%s;margin-top:0;'>Periodo %s | Generada el %s</p>"
+                + "<p style='color:%s;margin-top:0;'>Período %s | Generada el %s</p>"
                 + "<table style='width:100%%;border-collapse:collapse;font-size:13px;'>"
                 + "<tr><td style='padding:8px 0;color:%s;'>Salario bruto</td>"
                 + "    <td style='padding:8px 0;text-align:right;'><b>%s</b></td></tr>"
@@ -326,7 +326,7 @@ public class NominaPanel extends JPanel {
     }
 
     public void mostrarInfo(String mensaje) {
-        JOptionPane.showMessageDialog(this, mensaje, "Informacion", JOptionPane.INFORMATION_MESSAGE);
+        JOptionPane.showMessageDialog(this, mensaje, "Información", JOptionPane.INFORMATION_MESSAGE);
     }
 
     public void mostrarError(String mensaje) {
@@ -341,7 +341,7 @@ public class NominaPanel extends JPanel {
         panelResumenCards.add(tarjetaNeto);
         panelResumenCards.add(tarjetaCosto);
 
-        btnToggleResumen = new JButton("▲");
+        btnToggleResumen = new JButton("-");
         TemaVisual.estilizarBotonSecundario(btnToggleResumen);
         btnToggleResumen.setFont(TemaVisual.fuente(Font.PLAIN, 11));
         btnToggleResumen.setBorder(BorderFactory.createCompoundBorder(
@@ -371,7 +371,7 @@ public class NominaPanel extends JPanel {
     private void toggleResumen() {
         boolean visible = panelResumenCards.isVisible();
         panelResumenCards.setVisible(!visible);
-        btnToggleResumen.setText(visible ? "▼" : "▲");
+        btnToggleResumen.setText(visible ? "+" : "-");
         btnToggleResumen.setToolTipText(visible ? "Expandir resumen" : "Minimizar resumen");
         revalidate();
         repaint();
@@ -385,9 +385,9 @@ public class NominaPanel extends JPanel {
         JPanel encabezado = new JPanel();
         encabezado.setOpaque(false);
         encabezado.setLayout(new BoxLayout(encabezado, BoxLayout.Y_AXIS));
-        encabezado.add(TemaVisual.crearTituloSeccion("Generacion de nomina"));
+        encabezado.add(TemaVisual.crearTituloSeccion("Generación de nómina"));
         encabezado.add(Box.createVerticalStrut(6));
-        encabezado.add(TemaVisual.crearSubtitulo("Prepare el periodo, seleccione el colaborador y ejecute la liquidacion."));
+        encabezado.add(TemaVisual.crearSubtitulo("Prepare el período, seleccione el colaborador y ejecute la liquidación."));
 
         JPanel formulario = new JPanel(new GridBagLayout());
         formulario.setOpaque(false);
@@ -400,7 +400,7 @@ public class NominaPanel extends JPanel {
         formulario.add(crearBloqueCampo("Empleado activo", cmbEmpleados), gbc);
 
         gbc.gridy++;
-        formulario.add(crearBloqueCampo("Periodo", spPeriodo), gbc);
+        formulario.add(crearBloqueCampo("Período", spPeriodo), gbc);
 
         gbc.gridy++;
         formulario.add(chkEnviarAutomatico, gbc);
@@ -445,7 +445,7 @@ public class NominaPanel extends JPanel {
         encabezado.setLayout(new BoxLayout(encabezado, BoxLayout.Y_AXIS));
         encabezado.add(TemaVisual.crearTituloSeccion("Resumen operativo"));
         encabezado.add(Box.createVerticalStrut(6));
-        encabezado.add(TemaVisual.crearSubtitulo("Visualice el impacto de la nomina seleccionada antes de exportar o enviar."));
+        encabezado.add(TemaVisual.crearSubtitulo("Visualice el impacto de la nómina seleccionada antes de exportar o enviar."));
 
         JScrollPane scroll = new JScrollPane(panelDetalle);
         TemaVisual.estilizarScroll(scroll);
@@ -467,7 +467,7 @@ public class NominaPanel extends JPanel {
         JPanel textos = new JPanel();
         textos.setOpaque(false);
         textos.setLayout(new BoxLayout(textos, BoxLayout.Y_AXIS));
-        textos.add(TemaVisual.crearTituloSeccion("Historial de nominas"));
+        textos.add(TemaVisual.crearTituloSeccion("Historial de nóminas"));
         textos.add(Box.createVerticalStrut(6));
         lblResumenPeriodo = new JLabel("Cargando historial...");
         lblResumenPeriodo.setFont(TemaVisual.fuente(Font.PLAIN, 13));

@@ -7,6 +7,9 @@
 3. El sistema puede mostrar una recomendacion para cambiar el usuario y la contrasena por defecto.
 4. Si la autenticacion es correcta, se abre la ventana principal con los modulos `Colaboradores` y `Nomina y reportes`.
 
+<img width="919" height="642" alt="Captura de pantalla 2026-04-22 a la(s) 7 22 55 p  m" src="https://github.com/user-attachments/assets/8651bae5-34b5-4557-bf98-5d1fe2079fc6" />
+
+
 ## Gestion de colaboradores
 
 1. Complete cedula, nombre, puesto, departamento, correo, salario y fecha.

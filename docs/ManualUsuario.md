@@ -43,64 +43,6 @@
 
 ## Diagrama de flujo general
 
-```mermaid
-flowchart TD
-    A([Inicio<br/>presentacion.SistemaNomina_Progra2.main()])
-    B[Instalar tema visual<br/>Inicializar carpetas y archivos]
-    C[Crear ContextoAplicacion<br/>Repositorios + servicios]
-    D[Mostrar LoginFrame]
-    E{Usuario y contrasena validos?}
-    F[Mostrar error<br/>Aumentar intentos fallidos<br/>Bloquear si aplica]
-    G[UsuarioRepositorioTxt<br/>data/usuarios.txt]
-    H{Credenciales por defecto?}
-    I[Recomendar cambio de usuario<br/>y contrasena segura]
-    J[Mostrar MainFrame]
-    K{Modulo seleccionado}
+El diagrama completo del flujo del sistema se encuentra en PDF:
 
-    subgraph EMP[Modulo de Colaboradores]
-        L1[EmpleadoPanel + EmpleadoController]
-        L2[EmpleadoService<br/>Valida datos y reglas]
-        L3[EmpleadoRepositorioTxt<br/>data/empleados.txt]
-        L4[Recargar tablas y lista<br/>de empleados activos]
-        L1 --> L2 --> L3 --> L4
-    end
-
-    subgraph NOM[Modulo de Nomina y Reportes]
-        N1[NominaPanel<br/>Seleccionar empleado y periodo]
-        N2[NominaService<br/>Calcular bruto, deducciones,<br/>aportes patronales y neto]
-        N3[NominaRepositorioTxt<br/>data/nominas.txt]
-        N4[ReporteNominaService<br/>PDF individual del colaborador]
-        N5[ReporteNominaService<br/>PDF patronal separado]
-        N6{Enviar automaticamente al colaborador?}
-        N7[CorreoService<br/>Enviar comprobante al colaborador]
-        N8{Enviar al patrono?}
-        N9[CorreoService<br/>Enviar reporte patronal separado]
-        N10[Reporte general PDF por periodo]
-
-        N1 --> N2 --> N3 --> N4 --> N6
-        N6 -- Si --> N7
-        N6 -- No --> N8
-        N7 --> N8
-        N8 -- Si --> N5 --> N9
-        N8 -- No --> N10
-        N9 --> N10
-    end
-
-    Z[RegistroLogger<br/>data/logs.txt]
-
-    A --> B --> C --> D --> E
-    E -- No --> F --> D
-    E -- Si --> G --> H
-    H -- Si --> I --> J
-    H -- No --> J
-    J --> K
-    K -->|Colaboradores| L1
-    K -->|Nomina y reportes| N1
-    L4 -. Sincroniza empleados activos .-> N1
-    L2 -. Errores .-> Z
-    N2 -. Errores .-> Z
-    N4 -. Errores .-> Z
-    N5 -. Errores .-> Z
-    N7 -. Errores .-> Z
-    N9 -. Errores .-> Z
-```
+- [Diagrama_Flujo_SistemaNomina_Progra2.pdf](diagramas/Diagrama_Flujo_SistemaNomina_Progra2.pdf)

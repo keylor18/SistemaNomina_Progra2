@@ -150,7 +150,7 @@ La aplicacion esta organizada por capas para separar interfaz, logica y persiste
 Si `data/usuarios.txt` esta vacio, el sistema crea automaticamente este usuario:
 
 - Usuario: `admin`
-- Contrasena: `Admin123`
+- Contrasena: `admin`
 - Rol: `ADMIN`
 
 ---

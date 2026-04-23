@@ -3,7 +3,7 @@
 ## Ingreso al sistema
 
 1. Abra la aplicacion desde NetBeans o con `ant run`.
-2. Si es la primera ejecucion, ingrese con `admin / Admin123`.
+2. Si es la primera ejecucion, ingrese con `admin / admin`.
 3. El sistema puede mostrar una recomendacion para cambiar el usuario y la contrasena por defecto.
 4. Si la autenticacion es correcta, se abre la ventana principal con los modulos `Colaboradores` y `Nomina y reportes`.
 

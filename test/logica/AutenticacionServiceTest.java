@@ -26,7 +26,7 @@ public class AutenticacionServiceTest {
         UsuarioRepositorioTxt repositorio = new UsuarioRepositorioTxt(archivo.toPath());
         AutenticacionService service = new AutenticacionService(repositorio);
 
-        Usuario usuario = service.autenticar("admin", "Admin123");
+        Usuario usuario = service.autenticar("admin", "admin");
         assertNotNull(usuario);
     }
 
@@ -53,7 +53,7 @@ public class AutenticacionServiceTest {
         UsuarioRepositorioTxt repositorio = new UsuarioRepositorioTxt(archivo.toPath());
         AutenticacionService service = new AutenticacionService(repositorio);
 
-        Usuario usuario = service.autenticar("admin", "Admin123");
+        Usuario usuario = service.autenticar("admin", "admin");
 
         assertTrue(service.usaCredencialesPorDefecto(usuario));
     }
@@ -64,7 +64,7 @@ public class AutenticacionServiceTest {
         UsuarioRepositorioTxt repositorio = new UsuarioRepositorioTxt(archivo.toPath());
         AutenticacionService service = new AutenticacionService(repositorio);
 
-        Usuario usuario = service.autenticar("admin", "Admin123");
+        Usuario usuario = service.autenticar("admin", "admin");
         service.actualizarCredencialesIniciales(usuario, "admin.seguro", "V4l!dA2026#");
 
         Usuario autenticado = service.autenticar("admin.seguro", "V4l!dA2026#");
@@ -78,8 +78,8 @@ public class AutenticacionServiceTest {
         UsuarioRepositorioTxt repositorio = new UsuarioRepositorioTxt(archivo.toPath());
         AutenticacionService service = new AutenticacionService(repositorio);
 
-        Usuario usuario = service.autenticar("admin", "Admin123");
-        service.actualizarCredencialesIniciales(usuario, "admin.seguro", "Admin123");
+        Usuario usuario = service.autenticar("admin", "admin");
+        service.actualizarCredencialesIniciales(usuario, "admin.seguro", "admin");
     }
 
     @Test
@@ -88,7 +88,7 @@ public class AutenticacionServiceTest {
         UsuarioRepositorioTxt repositorio = new UsuarioRepositorioTxt(archivo.toPath());
         AutenticacionService service = new AutenticacionService(repositorio);
 
-        Usuario usuario = service.autenticar("admin", "Admin123");
+        Usuario usuario = service.autenticar("admin", "admin");
         service.actualizarCredencialesIniciales(usuario, "admin.seguro", "V4l!dA2026#");
 
         service.restablecerContrasenaOlvidada("admin.seguro", "Administrador General", "Risc0!Delta27");
@@ -103,7 +103,7 @@ public class AutenticacionServiceTest {
         UsuarioRepositorioTxt repositorio = new UsuarioRepositorioTxt(archivo.toPath());
         AutenticacionService service = new AutenticacionService(repositorio);
 
-        Usuario usuario = service.autenticar("admin", "Admin123");
+        Usuario usuario = service.autenticar("admin", "admin");
         service.actualizarCredencialesIniciales(usuario, "admin.seguro", "V4l!dA2026#");
 
         service.restablecerContrasenaOlvidada("admin.seguro", "Nombre Incorrecto", "Risc0!Delta27");
@@ -115,7 +115,7 @@ public class AutenticacionServiceTest {
         UsuarioRepositorioTxt repositorio = new UsuarioRepositorioTxt(archivo.toPath());
         AutenticacionService service = new AutenticacionService(repositorio);
 
-        Usuario usuario = service.autenticar("admin", "Admin123");
+        Usuario usuario = service.autenticar("admin", "admin");
         service.cambiarContrasena(usuario, "Admin!2026AZ");
     }
 }

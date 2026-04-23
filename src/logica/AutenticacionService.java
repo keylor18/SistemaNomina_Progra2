@@ -7,6 +7,7 @@ import excepciones.AutenticacionFallidaException;
 import excepciones.EntidadNoEncontradaException;
 import excepciones.PersistenciaException;
 import excepciones.ValidacionException;
+import java.util.List;
 import java.util.Optional;
 import utilidades.ConstantesNomina;
 import utilidades.ConstantesSeguridad;
@@ -104,6 +105,80 @@ public class AutenticacionService extends LogicaBase {
     }
 
     /**
+     * Indica si ya debe mostrarse la opción de recuperación de contraseña.
+     *
+     * @return true cuando ya no existen credenciales iniciales activas
+     * @throws PersistenciaException si falla la lectura de usuarios
+     */
+    public boolean debeMostrarRecuperacionContrasena() throws PersistenciaException {
+        List<Usuario> usuarios = usuarioRepositorio.obtenerTodos();
+        return !usuarios.isEmpty() && usuarios.stream().noneMatch(this::usaCredencialesPorDefecto);
+    }
+
+    /**
+     * Fuerza el reemplazo de las credenciales iniciales del sistema.
+     *
+     * @param usuario usuario autenticado con la clave inicial
+     * @param nuevoUsername nuevo nombre de acceso
+     * @param nuevaContrasena nueva contraseña segura
+     * @throws PersistenciaException si falla la persistencia
+     * @throws ValidacionException si no se reemplaza la contraseña inicial
+     */
+    public void actualizarCredencialesIniciales(Usuario usuario, String nuevoUsername, String nuevaContrasena)
+            throws PersistenciaException, ValidacionException {
+        if (usuario == null) {
+            throw new ValidacionException("El usuario autenticado es obligatorio.");
+        }
+        if (usaCredencialesPorDefecto(usuario)
+                && SeguridadUtil.hashSha256(nuevaContrasena).equals(usuario.getPasswordHash())) {
+            throw new ValidacionException("Debe definir una contraseña diferente a la credencial inicial.");
+        }
+        actualizarCredencialesAcceso(usuario, nuevoUsername, nuevaContrasena);
+    }
+
+    /**
+     * Actualiza el usuario de acceso y la contraseña del usuario autenticado.
+     *
+     * @param usuario usuario autenticado
+     * @param nuevoUsername nuevo nombre de acceso
+     * @param nuevaContrasena nueva contraseña segura
+     * @throws PersistenciaException si falla la persistencia
+     * @throws ValidacionException si el nuevo acceso es inválido
+     */
+    public void actualizarCredencialesAcceso(Usuario usuario, String nuevoUsername, String nuevaContrasena)
+            throws PersistenciaException, ValidacionException {
+        if (usuario == null) {
+            throw new ValidacionException("El usuario autenticado es obligatorio.");
+        }
+
+        String usernameActual = usuario.getUsername();
+        String usernameNormalizado = ValidacionesUtil.normalizarUsername(nuevoUsername);
+        ValidacionesUtil.validarContrasenaSegura(nuevaContrasena);
+
+        String nuevoHash = SeguridadUtil.hashSha256(nuevaContrasena);
+        boolean mismoUsername = usernameNormalizado.equalsIgnoreCase(usernameActual);
+        boolean mismaContrasena = nuevoHash.equals(usuario.getPasswordHash());
+        if (mismoUsername && mismaContrasena) {
+            throw new ValidacionException("Debe actualizar al menos el nombre de usuario o la contraseña.");
+        }
+
+        Usuario actualizado = new Usuario(usernameNormalizado, usuario.getNombreCompleto(), nuevoHash,
+                usuario.getRol(), 0, false);
+
+        try {
+            usuarioRepositorio.actualizar(usernameActual, actualizado);
+        } catch (EntidadNoEncontradaException ex) {
+            RegistroLogger.registrarError("Actualización de credenciales de acceso", ex);
+            throw new PersistenciaException("No fue posible actualizar las credenciales del usuario.", ex);
+        }
+
+        usuario.setUsername(usernameNormalizado);
+        usuario.setPasswordHash(nuevoHash);
+        usuario.setIntentosFallidos(0);
+        usuario.setBloqueado(false);
+    }
+
+    /**
      * Actualiza la contraseña del usuario autenticado.
      *
      * @param usuario usuario que cambiará su clave
@@ -113,25 +188,41 @@ public class AutenticacionService extends LogicaBase {
      */
     public void cambiarContrasena(Usuario usuario, String nuevaContrasena)
             throws PersistenciaException, ValidacionException {
-        if (usuario == null) {
-            throw new ValidacionException("El usuario autenticado es obligatorio.");
+        actualizarCredencialesAcceso(usuario, usuario.getUsername(), nuevaContrasena);
+    }
+
+    /**
+     * Permite recuperar la contraseña validando el usuario y el nombre completo.
+     *
+     * @param username nombre de usuario actual
+     * @param nombreCompleto nombre completo registrado en la cuenta
+     * @param nuevaContrasena nueva contraseña segura
+     * @throws PersistenciaException si falla la persistencia
+     * @throws ValidacionException si los datos no son válidos
+     */
+    public void restablecerContrasenaOlvidada(String username, String nombreCompleto, String nuevaContrasena)
+            throws PersistenciaException, ValidacionException {
+        String usernameNormalizado = ValidacionesUtil.normalizarUsername(username);
+        if (!ValidacionesUtil.tieneTexto(nombreCompleto)) {
+            throw new ValidacionException("El nombre completo es obligatorio para recuperar la contraseña.");
         }
 
-        ValidacionesUtil.validarContrasenaSegura(nuevaContrasena);
-        String nuevoHash = SeguridadUtil.hashSha256(nuevaContrasena);
-        if (nuevoHash.equals(usuario.getPasswordHash())) {
-            throw new ValidacionException("La nueva contraseña debe ser diferente a la actual.");
-        }
-
-        usuario.setPasswordHash(nuevoHash);
-        usuario.setIntentosFallidos(0);
-        usuario.setBloqueado(false);
+        Usuario usuario;
         try {
-            usuarioRepositorio.actualizar(usuario);
+            usuario = usuarioRepositorio.buscarPorId(usernameNormalizado)
+                    .orElseThrow(() -> new EntidadNoEncontradaException("No se encontró un usuario con ese nombre de acceso."));
         } catch (EntidadNoEncontradaException ex) {
-            RegistroLogger.registrarError("Cambio de contraseña de usuario", ex);
-            throw new PersistenciaException("No fue posible actualizar la contraseña del usuario.", ex);
+            throw new ValidacionException(ex.getMessage());
         }
+
+        if (!ValidacionesUtil.sonTextosEquivalentes(usuario.getNombreCompleto(), nombreCompleto)) {
+            throw new ValidacionException("El nombre completo no coincide con la cuenta indicada.");
+        }
+        if (usaCredencialesPorDefecto(usuario)) {
+            throw new ValidacionException("Primero debe cambiar las credenciales iniciales desde el ingreso principal.");
+        }
+
+        cambiarContrasena(usuario, nuevaContrasena);
     }
 
     /**
@@ -148,12 +239,12 @@ public class AutenticacionService extends LogicaBase {
                 .orElseThrow(() -> new EntidadNoEncontradaException("Usuario no encontrado."));
         usuario.setIntentosFallidos(0);
         usuario.setBloqueado(false);
-        usuarioRepositorio.actualizar(usuario);
+        usuarioRepositorio.actualizar(usuario.getUsername(), usuario);
     }
 
     private void persistirUsuarioSilenciosamente(Usuario usuario) throws PersistenciaException {
         try {
-            usuarioRepositorio.actualizar(usuario);
+            usuarioRepositorio.actualizar(usuario.getUsername(), usuario);
         } catch (EntidadNoEncontradaException | ValidacionException ex) {
             RegistroLogger.registrarError("Actualización de usuario en autenticación", ex);
             throw new PersistenciaException("No fue posible actualizar el estado del usuario.", ex);

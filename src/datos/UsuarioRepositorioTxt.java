@@ -2,6 +2,7 @@ package datos;
 
 import entidades.RolUsuario;
 import entidades.Usuario;
+import excepciones.EntidadNoEncontradaException;
 import excepciones.PersistenciaException;
 import excepciones.ValidacionException;
 import java.nio.file.Path;
@@ -59,6 +60,21 @@ public class UsuarioRepositorioTxt extends RepositorioArchivo<Usuario, String> {
         }
     }
 
+    public void actualizar(String usernameOriginal, Usuario entidad)
+            throws PersistenciaException, ValidacionException, EntidadNoEncontradaException {
+        synchronized (candado) {
+            List<Usuario> entidades = leerEntidades();
+            validarEntidad(entidad);
+            int indiceOriginal = buscarIndicePorUsername(entidades, usernameOriginal);
+            if (indiceOriginal < 0) {
+                throw new EntidadNoEncontradaException("No existe un usuario con el identificador indicado.");
+            }
+            validarIntegridadActualizacion(entidades, entidad, usernameOriginal);
+            entidades.set(indiceOriginal, entidad);
+            escribirEntidades(entidades);
+        }
+    }
+
     @Override
     protected String serializar(Usuario entidad) {
         return String.join("|",
@@ -86,6 +102,25 @@ public class UsuarioRepositorioTxt extends RepositorioArchivo<Usuario, String> {
                     Boolean.parseBoolean(partes[5]));
         } catch (Exception ex) {
             throw new PersistenciaException("No fue posible interpretar el usuario de la linea " + numeroLinea + ".", ex);
+        }
+    }
+
+    private int buscarIndicePorUsername(List<Usuario> entidades, String username) {
+        for (int i = 0; i < entidades.size(); i++) {
+            if (Objects.equals(entidades.get(i).getUsername(), username)) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    private void validarIntegridadActualizacion(List<Usuario> entidades, Usuario entidad, String usernameOriginal)
+            throws ValidacionException {
+        for (Usuario actual : entidades) {
+            boolean esMismoRegistro = actual.getUsername().equalsIgnoreCase(usernameOriginal);
+            if (!esMismoRegistro && actual.getUsername().equalsIgnoreCase(entidad.getUsername())) {
+                throw new ValidacionException("Ya existe un usuario con el mismo nombre de acceso.");
+            }
         }
     }
 }

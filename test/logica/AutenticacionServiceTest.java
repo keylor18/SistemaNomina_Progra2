@@ -13,7 +13,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 /**
- * Pruebas del módulo de autenticación.
+ * Pruebas del modulo de autenticacion.
  */
 public class AutenticacionServiceTest {
 
@@ -59,17 +59,54 @@ public class AutenticacionServiceTest {
     }
 
     @Test
-    public void debeCambiarContrasenaYDesactivarCredencialesPorDefecto() throws Exception {
-        File archivo = temporaryFolder.newFile("usuarios-cambio.txt");
+    public void debeCambiarUsuarioYContrasenaIniciales() throws Exception {
+        File archivo = temporaryFolder.newFile("usuarios-cambio-inicial.txt");
         UsuarioRepositorioTxt repositorio = new UsuarioRepositorioTxt(archivo.toPath());
         AutenticacionService service = new AutenticacionService(repositorio);
 
         Usuario usuario = service.autenticar("admin", "Admin123");
-        service.cambiarContrasena(usuario, "V4l!dA2026#");
+        service.actualizarCredencialesIniciales(usuario, "admin.seguro", "V4l!dA2026#");
 
-        Usuario autenticado = service.autenticar("admin", "V4l!dA2026#");
+        Usuario autenticado = service.autenticar("admin.seguro", "V4l!dA2026#");
         assertNotNull(autenticado);
         assertFalse(service.usaCredencialesPorDefecto(autenticado));
+    }
+
+    @Test(expected = ValidacionException.class)
+    public void debeRechazarReutilizarLaContrasenaInicialAunqueCambieElUsuario() throws Exception {
+        File archivo = temporaryFolder.newFile("usuarios-reutiliza-inicial.txt");
+        UsuarioRepositorioTxt repositorio = new UsuarioRepositorioTxt(archivo.toPath());
+        AutenticacionService service = new AutenticacionService(repositorio);
+
+        Usuario usuario = service.autenticar("admin", "Admin123");
+        service.actualizarCredencialesIniciales(usuario, "admin.seguro", "Admin123");
+    }
+
+    @Test
+    public void debeRecuperarContrasenaDespuesDeCambiarCredencialesIniciales() throws Exception {
+        File archivo = temporaryFolder.newFile("usuarios-recuperacion.txt");
+        UsuarioRepositorioTxt repositorio = new UsuarioRepositorioTxt(archivo.toPath());
+        AutenticacionService service = new AutenticacionService(repositorio);
+
+        Usuario usuario = service.autenticar("admin", "Admin123");
+        service.actualizarCredencialesIniciales(usuario, "admin.seguro", "V4l!dA2026#");
+
+        service.restablecerContrasenaOlvidada("admin.seguro", "Administrador General", "Risc0!Delta27");
+
+        Usuario autenticado = service.autenticar("admin.seguro", "Risc0!Delta27");
+        assertNotNull(autenticado);
+    }
+
+    @Test(expected = ValidacionException.class)
+    public void debeRechazarRecuperacionConNombreCompletoIncorrecto() throws Exception {
+        File archivo = temporaryFolder.newFile("usuarios-recuperacion-invalida.txt");
+        UsuarioRepositorioTxt repositorio = new UsuarioRepositorioTxt(archivo.toPath());
+        AutenticacionService service = new AutenticacionService(repositorio);
+
+        Usuario usuario = service.autenticar("admin", "Admin123");
+        service.actualizarCredencialesIniciales(usuario, "admin.seguro", "V4l!dA2026#");
+
+        service.restablecerContrasenaOlvidada("admin.seguro", "Nombre Incorrecto", "Risc0!Delta27");
     }
 
     @Test(expected = ValidacionException.class)

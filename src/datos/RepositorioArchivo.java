@@ -22,7 +22,7 @@ import java.util.Optional;
  */
 public abstract class RepositorioArchivo<T, ID> implements Repositorio<T, ID> {
 
-    private final Object candado = new Object();
+    protected final Object candado = new Object();
     private final Path rutaArchivo;
 
     protected RepositorioArchivo(Path rutaArchivo) throws PersistenciaException {

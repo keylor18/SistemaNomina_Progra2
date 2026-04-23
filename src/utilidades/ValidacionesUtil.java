@@ -16,6 +16,7 @@ public final class ValidacionesUtil {
     private static final Pattern MINUSCULA = Pattern.compile(".*[a-z].*");
     private static final Pattern DIGITO = Pattern.compile(".*\\d.*");
     private static final Pattern ESPECIAL = Pattern.compile(".*[^A-Za-z0-9\\s].*");
+    private static final Pattern USERNAME = Pattern.compile("^[a-z0-9._-]{4,24}$");
     private static final Pattern TOKEN_ALFABETICO = Pattern.compile(
             "[A-Za-z\\u00C1\\u00C9\\u00CD\\u00D3\\u00DA\\u00E1\\u00E9\\u00ED\\u00F3\\u00FA\\u00D1\\u00F1]+");
     private static final Set<String> PALABRAS_COMUNES = Set.of(
@@ -48,6 +49,39 @@ public final class ValidacionesUtil {
      */
     public static boolean tieneTexto(String valor) {
         return valor != null && !valor.trim().isEmpty();
+    }
+
+    /**
+     * Normaliza y valida el nombre de usuario de acceso.
+     *
+     * @param username valor ingresado
+     * @return nombre de usuario normalizado en minúscula
+     * @throws ValidacionException si el formato es inválido
+     */
+    public static String normalizarUsername(String username) throws ValidacionException {
+        if (!tieneTexto(username)) {
+            throw new ValidacionException("El nombre de usuario es obligatorio.");
+        }
+        String normalizado = username.trim().toLowerCase(Locale.ROOT);
+        if (!USERNAME.matcher(normalizado).matches()) {
+            throw new ValidacionException(
+                    "El nombre de usuario debe tener entre 4 y 24 caracteres y solo puede incluir letras, números, punto, guion y guion bajo.");
+        }
+        return normalizado;
+    }
+
+    /**
+     * Compara dos textos ignorando mayúsculas, tildes y espacios externos.
+     *
+     * @param textoA primer valor
+     * @param textoB segundo valor
+     * @return true si representan el mismo texto
+     */
+    public static boolean sonTextosEquivalentes(String textoA, String textoB) {
+        if (!tieneTexto(textoA) || !tieneTexto(textoB)) {
+            return false;
+        }
+        return normalizarTexto(textoA).equals(normalizarTexto(textoB));
     }
 
     /**
@@ -101,7 +135,7 @@ public final class ValidacionesUtil {
     }
 
     private static String normalizarTexto(String valor) {
-        String valorNormalizado = Normalizer.normalize(valor, Normalizer.Form.NFD)
+        String valorNormalizado = Normalizer.normalize(valor.trim(), Normalizer.Form.NFD)
                 .replaceAll("\\p{M}", "");
         return valorNormalizado.toLowerCase(Locale.ROOT);
     }

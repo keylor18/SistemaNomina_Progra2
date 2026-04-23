@@ -42,15 +42,9 @@ public class ReporteNominaService extends LogicaBase implements ExportadorPdf<No
             Document document = new Document(PageSize.A4, 40, 40, 36, 36);
             PdfWriter.getInstance(document, output);
             document.open();
-            document.add(new Paragraph("SistemaNomina_Progra2", TITULO));
-            document.add(new Paragraph("Comprobante individual de nomina", SUBTITULO));
-            document.add(new Paragraph("Empleado: " + nomina.getNombreEmpleado(), TEXTO));
-            document.add(new Paragraph("Periodo: " + FormatoUtil.formatearPeriodo(nomina.getPeriodo()), TEXTO));
-            document.add(new Paragraph("Fecha de generacion: " + FormatoUtil.formatearFecha(nomina.getFechaGeneracion()), TEXTO));
+            agregarEncabezadoIndividual(document, nomina);
             document.add(new Paragraph(" "));
             document.add(crearTablaConceptosTrabajador(nomina));
-            document.add(new Paragraph(" "));
-            document.add(crearTablaAportesPatronales(nomina));
             document.add(new Paragraph(" "));
             document.add(new Paragraph("Fuentes normativas 2026:", SUBTITULO));
             document.add(new Paragraph("CCSS IVM y contribuciones: " + ConstantesNomina.FUENTE_CCSS, TEXTO));
@@ -59,6 +53,37 @@ public class ReporteNominaService extends LogicaBase implements ExportadorPdf<No
             return ruta;
         } catch (IOException | DocumentException ex) {
             throw new PdfException("No fue posible generar el PDF individual.", ex);
+        }
+    }
+
+    /**
+     * Genera un reporte patronal separado del comprobante del colaborador.
+     *
+     * @param nomina nomina origen
+     * @return ruta del archivo generado
+     * @throws PdfException si falla la generacion
+     */
+    public Path generarReportePatronal(Nomina nomina) throws PdfException {
+        String archivo = "aporte_patronal_" + sanitizar(nomina.getNombreEmpleado()) + "_" + nomina.getPeriodo() + ".pdf";
+        Path ruta = RutasSistema.REPORTES_DIR.resolve(archivo);
+        try (OutputStream output = Files.newOutputStream(ruta, StandardOpenOption.CREATE,
+                StandardOpenOption.TRUNCATE_EXISTING)) {
+            Document document = new Document(PageSize.A4, 40, 40, 36, 36);
+            PdfWriter.getInstance(document, output);
+            document.open();
+            agregarEncabezadoPatronal(document, nomina);
+            document.add(new Paragraph(" "));
+            document.add(crearTablaResumenPatronal(nomina));
+            document.add(new Paragraph(" "));
+            document.add(crearTablaAportesPatronales(nomina));
+            document.add(new Paragraph(" "));
+            document.add(new Paragraph("Fuentes normativas 2026:", SUBTITULO));
+            document.add(new Paragraph("CCSS patronos: " + ConstantesNomina.FUENTE_PATRONOS, TEXTO));
+            document.add(new Paragraph("CCSS IVM y contribuciones: " + ConstantesNomina.FUENTE_CCSS, TEXTO));
+            document.close();
+            return ruta;
+        } catch (IOException | DocumentException ex) {
+            throw new PdfException("No fue posible generar el PDF patronal.", ex);
         }
     }
 
@@ -115,6 +140,17 @@ public class ReporteNominaService extends LogicaBase implements ExportadorPdf<No
         return table;
     }
 
+    private PdfPTable crearTablaResumenPatronal(Nomina nomina) {
+        PdfPTable table = new PdfPTable(new float[]{3.5f, 1.5f});
+        table.setWidthPercentage(100);
+        agregarEncabezado(table, "Resumen patronal");
+        agregarEncabezado(table, "Monto");
+        agregarFila(table, "Salario bruto base", FormatoUtil.formatearMoneda(nomina.getSalarioBruto()));
+        agregarFila(table, "Total aportes patronales", FormatoUtil.formatearMoneda(nomina.getTotalAportesPatronales()));
+        agregarFila(table, "Costo total empresa", FormatoUtil.formatearMoneda(nomina.getCostoTotalEmpresa()));
+        return table;
+    }
+
     private PdfPTable crearTablaAportesPatronales(Nomina nomina) {
         PdfPTable table = new PdfPTable(new float[]{3.5f, 1.5f});
         table.setWidthPercentage(100);
@@ -164,6 +200,22 @@ public class ReporteNominaService extends LogicaBase implements ExportadorPdf<No
             cell.setPadding(5);
             table.addCell(cell);
         }
+    }
+
+    private void agregarEncabezadoIndividual(Document document, Nomina nomina) throws DocumentException {
+        document.add(new Paragraph("SistemaNomina_Progra2", TITULO));
+        document.add(new Paragraph("Comprobante individual de nomina", SUBTITULO));
+        document.add(new Paragraph("Empleado: " + nomina.getNombreEmpleado(), TEXTO));
+        document.add(new Paragraph("Periodo: " + FormatoUtil.formatearPeriodo(nomina.getPeriodo()), TEXTO));
+        document.add(new Paragraph("Fecha de generacion: " + FormatoUtil.formatearFecha(nomina.getFechaGeneracion()), TEXTO));
+    }
+
+    private void agregarEncabezadoPatronal(Document document, Nomina nomina) throws DocumentException {
+        document.add(new Paragraph("SistemaNomina_Progra2", TITULO));
+        document.add(new Paragraph("Reporte patronal separado", SUBTITULO));
+        document.add(new Paragraph("Colaborador asociado: " + nomina.getNombreEmpleado(), TEXTO));
+        document.add(new Paragraph("Periodo: " + FormatoUtil.formatearPeriodo(nomina.getPeriodo()), TEXTO));
+        document.add(new Paragraph("Fecha de generacion: " + FormatoUtil.formatearFecha(nomina.getFechaGeneracion()), TEXTO));
     }
 
     private String sanitizar(String valor) {

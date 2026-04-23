@@ -11,7 +11,7 @@ import presentacion.MainFrame;
 import utilidades.RegistroLogger;
 
 /**
- * Controlador del flujo de autenticación.
+ * Controlador del flujo de autenticacion.
  */
 public class LoginController {
 
@@ -22,6 +22,8 @@ public class LoginController {
         this.loginFrame = loginFrame;
         this.contexto = contexto;
         this.loginFrame.setAccionIngresar(e -> autenticar());
+        this.loginFrame.setAccionOlvidoContrasena(e -> recuperarContrasena());
+        actualizarVisibilidadRecuperacion();
     }
 
     private void autenticar() {
@@ -34,7 +36,7 @@ public class LoginController {
         } catch (AutenticacionFallidaException ex) {
             loginFrame.mostrarEstado(ex.getMessage(), new Color(180, 0, 0));
         } catch (PersistenciaException ex) {
-            RegistroLogger.registrarError("Autenticación", ex);
+            RegistroLogger.registrarError("Autenticacion", ex);
             loginFrame.mostrarEstado("No fue posible validar el usuario.", new Color(180, 0, 0));
         }
     }
@@ -43,29 +45,76 @@ public class LoginController {
         if (!contexto.getAutenticacionService().usaCredencialesPorDefecto(usuario)) {
             return;
         }
+
         boolean deseaCambiar = loginFrame.mostrarAvisoCredencialesPorDefecto();
         if (!deseaCambiar) {
-            loginFrame.mostrarMensaje("Puede cambiar la contraseña más tarde, pero se recomienda actualizarla cuanto antes.");
+            loginFrame.mostrarMensaje(
+                    "Puede cambiar el usuario y la contrase\u00f1a m\u00e1s tarde, pero se recomienda actualizarlos cuanto antes.");
             return;
         }
 
         while (true) {
-            String nuevaContrasena = loginFrame.solicitarNuevaContrasenaSegura();
-            if (nuevaContrasena == null) {
-                loginFrame.mostrarMensaje("Cambio de contraseña pospuesto. Recuerde actualizar las credenciales por seguridad.");
+            LoginFrame.SolicitudCredencialesAcceso solicitud =
+                    loginFrame.solicitarActualizacionCredenciales(usuario.getUsername());
+            if (solicitud == null) {
+                loginFrame.mostrarMensaje(
+                        "Actualizaci\u00f3n de credenciales pospuesta. Recuerde cambiar el usuario y la contrase\u00f1a por seguridad.");
                 return;
             }
+
             try {
-                contexto.getAutenticacionService().cambiarContrasena(usuario, nuevaContrasena);
-                loginFrame.mostrarMensaje("Contraseña actualizada correctamente.");
+                contexto.getAutenticacionService().actualizarCredencialesIniciales(
+                        usuario, solicitud.getNuevoUsername(), solicitud.getNuevaContrasena());
+                loginFrame.mostrarMensaje(
+                        "Credenciales actualizadas correctamente. Su nuevo usuario es: " + usuario.getUsername());
+                actualizarVisibilidadRecuperacion();
                 return;
             } catch (ValidacionException ex) {
                 loginFrame.mostrarMensajeError(ex.getMessage());
             } catch (PersistenciaException ex) {
-                RegistroLogger.registrarError("Cambio inicial de contraseña", ex);
-                loginFrame.mostrarMensajeError("No fue posible actualizar la contraseña. Puede intentarlo más tarde.");
+                RegistroLogger.registrarError("Cambio inicial de credenciales", ex);
+                loginFrame.mostrarMensajeError(
+                        "No fue posible actualizar las credenciales. Puede intentarlo m\u00e1s tarde.");
                 return;
             }
+        }
+    }
+
+    private void recuperarContrasena() {
+        while (true) {
+            LoginFrame.SolicitudRecuperacion solicitud = loginFrame.solicitarRecuperacionContrasena();
+            if (solicitud == null) {
+                return;
+            }
+
+            try {
+                contexto.getAutenticacionService().restablecerContrasenaOlvidada(
+                        solicitud.getUsername(), solicitud.getNombreCompleto(), solicitud.getNuevaContrasena());
+                loginFrame.mostrarMensaje(
+                        "Contrase\u00f1a restablecida correctamente. Ya puede ingresar con su nueva clave.");
+                actualizarVisibilidadRecuperacion();
+                return;
+            } catch (ValidacionException ex) {
+                loginFrame.mostrarMensajeError(ex.getMessage());
+            } catch (PersistenciaException ex) {
+                RegistroLogger.registrarError("Recuperacion de contrase\u00f1a", ex);
+                loginFrame.mostrarMensajeError(
+                        "No fue posible completar la recuperaci\u00f3n de contrase\u00f1a.");
+                return;
+            }
+        }
+    }
+
+    private void actualizarVisibilidadRecuperacion() {
+        try {
+            boolean recuperacionVisible =
+                    contexto.getAutenticacionService().debeMostrarRecuperacionContrasena();
+            loginFrame.setRecuperacionVisible(recuperacionVisible);
+            loginFrame.setCredencialesInicialesActivas(!recuperacionVisible);
+        } catch (PersistenciaException ex) {
+            RegistroLogger.registrarError("Visibilidad de recuperacion de contrase\u00f1a", ex);
+            loginFrame.setRecuperacionVisible(false);
+            loginFrame.setCredencialesInicialesActivas(true);
         }
     }
 

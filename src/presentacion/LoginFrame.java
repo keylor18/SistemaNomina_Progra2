@@ -64,7 +64,9 @@ public class LoginFrame extends JFrame {
     private JTextField txtUsuario;
     private JPasswordField txtContrasena;
     private JButton btnIngresar;
+    private JButton btnOlvidoContrasena;
     private JLabel lblEstado;
+    private JComponent panelCredencialesIniciales;
 
     public LoginFrame() {
         setTitle("Sistema Nómina");
@@ -115,6 +117,35 @@ public class LoginFrame extends JFrame {
         btnIngresar.addActionListener(listener);
     }
 
+    public void setAccionOlvidoContrasena(ActionListener listener) {
+        btnOlvidoContrasena.addActionListener(listener);
+    }
+
+    public void setRecuperacionVisible(boolean visible) {
+        btnOlvidoContrasena.setVisible(visible);
+        btnOlvidoContrasena.setEnabled(visible);
+        revalidate();
+        repaint();
+    }
+
+    public void setCredencialesInicialesActivas(boolean activas) {
+        panelCredencialesIniciales.setVisible(activas);
+        if (activas) {
+            txtUsuario.setText(ConstantesSeguridad.USUARIO_ADMIN_POR_DEFECTO);
+            txtContrasena.setText(ConstantesSeguridad.CONTRASENA_ADMIN_POR_DEFECTO);
+        } else {
+            String usuarioActual = txtUsuario.getText().trim();
+            String contrasenaActual = new String(txtContrasena.getPassword());
+            if (ConstantesSeguridad.USUARIO_ADMIN_POR_DEFECTO.equalsIgnoreCase(usuarioActual)
+                    && ConstantesSeguridad.CONTRASENA_ADMIN_POR_DEFECTO.equals(contrasenaActual)) {
+                txtUsuario.setText("");
+                txtContrasena.setText("");
+            }
+        }
+        revalidate();
+        repaint();
+    }
+
     public void mostrarEstado(String mensaje, Color color) {
         boolean visible = mensaje != null && !mensaje.isBlank();
         lblEstado.setVisible(visible);
@@ -156,19 +187,58 @@ public class LoginFrame extends JFrame {
         return seleccion == 0;
     }
 
-    public String solicitarNuevaContrasenaSegura() {
+    public SolicitudCredencialesAcceso solicitarActualizacionCredenciales(String usernameActual) {
         while (true) {
+            JTextField txtNuevoUsuario = new JTextField(usernameActual, 18);
             JPasswordField txtNuevaContrasena = new JPasswordField(18);
             JPasswordField txtConfirmacion = new JPasswordField(18);
             txtNuevaContrasena.setEchoChar('\u2022');
             txtConfirmacion.setEchoChar('\u2022');
 
-            JPanel panel = crearPanelCambioContrasena(txtNuevaContrasena, txtConfirmacion);
+            JPanel panel = crearPanelCambioContrasena(txtNuevoUsuario, txtNuevaContrasena, txtConfirmacion);
             Object[] opciones = {"Actualizar ahora", "Más tarde"};
             int seleccion = JOptionPane.showOptionDialog(
                     this,
                     panel,
                     "Actualizar contraseña",
+                    JOptionPane.DEFAULT_OPTION,
+                    JOptionPane.PLAIN_MESSAGE,
+                    null,
+                    opciones,
+                    opciones[0]
+            );
+
+            if (seleccion != 0) {
+                return null;
+            }
+
+            String nuevoUsername = txtNuevoUsuario.getText().trim();
+            String nuevaContrasena = new String(txtNuevaContrasena.getPassword());
+            String confirmacion = new String(txtConfirmacion.getPassword());
+            if (!nuevaContrasena.equals(confirmacion)) {
+                mostrarMensajeError("La confirmación de la contraseña no coincide.");
+                continue;
+            }
+            return new SolicitudCredencialesAcceso(nuevoUsername, nuevaContrasena);
+        }
+    }
+
+    public SolicitudRecuperacion solicitarRecuperacionContrasena() {
+        while (true) {
+            JTextField txtUsuarioRecuperacion = new JTextField(getUsuario(), 18);
+            JTextField txtNombreCompleto = new JTextField(18);
+            JPasswordField txtNuevaContrasena = new JPasswordField(18);
+            JPasswordField txtConfirmacion = new JPasswordField(18);
+            txtNuevaContrasena.setEchoChar('\u2022');
+            txtConfirmacion.setEchoChar('\u2022');
+
+            JPanel panel = crearPanelRecuperacionContrasena(
+                    txtUsuarioRecuperacion, txtNombreCompleto, txtNuevaContrasena, txtConfirmacion);
+            Object[] opciones = {"Restablecer ahora", "Cancelar"};
+            int seleccion = JOptionPane.showOptionDialog(
+                    this,
+                    panel,
+                    "Recuperar contraseña",
                     JOptionPane.DEFAULT_OPTION,
                     JOptionPane.PLAIN_MESSAGE,
                     null,
@@ -186,7 +256,11 @@ public class LoginFrame extends JFrame {
                 mostrarMensajeError("La confirmación de la contraseña no coincide.");
                 continue;
             }
-            return nuevaContrasena;
+
+            return new SolicitudRecuperacion(
+                    txtUsuarioRecuperacion.getText().trim(),
+                    txtNombreCompleto.getText().trim(),
+                    nuevaContrasena);
         }
     }
 
@@ -220,6 +294,10 @@ public class LoginFrame extends JFrame {
         btnIngresar.setPreferredSize(new Dimension(ANCHO_CONTENIDO, 42));
         btnIngresar.setMaximumSize(btnIngresar.getPreferredSize());
 
+        btnOlvidoContrasena = crearBotonEnlace("\u00BFOlvid\u00F3 su contrase\u00F1a?");
+        btnOlvidoContrasena.setVisible(false);
+        btnOlvidoContrasena.setEnabled(false);
+
         lblEstado = new JLabel(" ");
         lblEstado.setAlignmentX(CENTER_ALIGNMENT);
         lblEstado.setHorizontalAlignment(SwingConstants.CENTER);
@@ -237,10 +315,13 @@ public class LoginFrame extends JFrame {
         panel.add(centrarComponente(crearBloqueCampo("CONTRASEÑA", txtContrasena, TipoIcono.CANDADO)));
         panel.add(Box.createVerticalStrut(28));
         panel.add(centrarComponente(btnIngresar));
+        panel.add(Box.createVerticalStrut(8));
+        panel.add(centrarComponente(btnOlvidoContrasena));
         panel.add(Box.createVerticalStrut(24));
         panel.add(centrarComponente(lblEstado));
         panel.add(Box.createVerticalStrut(16));
-        panel.add(centrarComponente(crearPanelCredenciales()));
+        panelCredencialesIniciales = centrarComponente(crearPanelCredenciales());
+        panel.add(panelCredencialesIniciales);
         panel.add(Box.createVerticalGlue());
 
         return panel;
@@ -309,7 +390,8 @@ public class LoginFrame extends JFrame {
         return panel;
     }
 
-    private JPanel crearPanelCambioContrasena(JPasswordField txtNuevaContrasena, JPasswordField txtConfirmacion) {
+    private JPanel crearPanelCambioContrasena(JTextField txtNuevoUsuario,
+            JPasswordField txtNuevaContrasena, JPasswordField txtConfirmacion) {
         JPanel panel = new JPanel(new GridBagLayout());
         panel.setOpaque(false);
 
@@ -319,7 +401,7 @@ public class LoginFrame extends JFrame {
         gbc.anchor = GridBagConstraints.WEST;
         gbc.insets = new Insets(0, 0, 8, 0);
 
-        JLabel encabezado = new JLabel("<html><b>Actualiza la contraseña del administrador</b></html>");
+        JLabel encabezado = new JLabel("<html><b>Actualiza el usuario y la contraseña del administrador</b></html>");
         encabezado.setFont(TemaVisual.fuente(Font.BOLD, 13));
         panel.add(encabezado, gbc);
 
@@ -329,6 +411,15 @@ public class LoginFrame extends JFrame {
                 + "</div></html>");
         descripcion.setFont(TemaVisual.fuente(Font.PLAIN, 12));
         panel.add(descripcion, gbc);
+
+        gbc.gridy++;
+        gbc.insets = new Insets(10, 0, 4, 0);
+        panel.add(new JLabel("Nuevo nombre de usuario"), gbc);
+
+        gbc.gridy++;
+        gbc.insets = new Insets(0, 0, 8, 0);
+        txtNuevoUsuario.setColumns(18);
+        panel.add(txtNuevoUsuario, gbc);
 
         gbc.gridy++;
         gbc.insets = new Insets(10, 0, 4, 0);
@@ -365,6 +456,67 @@ public class LoginFrame extends JFrame {
         return panel;
     }
 
+    private JPanel crearPanelRecuperacionContrasena(JTextField txtUsuarioRecuperacion, JTextField txtNombreCompleto,
+            JPasswordField txtNuevaContrasena, JPasswordField txtConfirmacion) {
+        JPanel panel = new JPanel(new GridBagLayout());
+        panel.setOpaque(false);
+
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.anchor = GridBagConstraints.WEST;
+        gbc.insets = new Insets(0, 0, 8, 0);
+
+        JLabel encabezado = new JLabel("<html><b>Recupere el acceso a su cuenta</b></html>");
+        encabezado.setFont(TemaVisual.fuente(Font.BOLD, 13));
+        panel.add(encabezado, gbc);
+
+        gbc.gridy++;
+        JLabel descripcion = new JLabel("<html><div style='width:300px;'>"
+                + "Ingrese el nombre de usuario actual, el nombre completo registrado y defina una nueva contraseña segura."
+                + "</div></html>");
+        descripcion.setFont(TemaVisual.fuente(Font.PLAIN, 12));
+        panel.add(descripcion, gbc);
+
+        gbc.gridy++;
+        gbc.insets = new Insets(10, 0, 4, 0);
+        panel.add(new JLabel("Usuario actual"), gbc);
+
+        gbc.gridy++;
+        gbc.insets = new Insets(0, 0, 8, 0);
+        txtUsuarioRecuperacion.setColumns(18);
+        panel.add(txtUsuarioRecuperacion, gbc);
+
+        gbc.gridy++;
+        gbc.insets = new Insets(4, 0, 4, 0);
+        panel.add(new JLabel("Nombre completo"), gbc);
+
+        gbc.gridy++;
+        gbc.insets = new Insets(0, 0, 8, 0);
+        txtNombreCompleto.setColumns(18);
+        panel.add(txtNombreCompleto, gbc);
+
+        gbc.gridy++;
+        gbc.insets = new Insets(4, 0, 4, 0);
+        panel.add(new JLabel("Nueva contraseña"), gbc);
+
+        gbc.gridy++;
+        gbc.insets = new Insets(0, 0, 8, 0);
+        txtNuevaContrasena.setColumns(18);
+        panel.add(txtNuevaContrasena, gbc);
+
+        gbc.gridy++;
+        gbc.insets = new Insets(4, 0, 4, 0);
+        panel.add(new JLabel("Confirmar contraseña"), gbc);
+
+        gbc.gridy++;
+        gbc.insets = new Insets(0, 0, 0, 0);
+        txtConfirmacion.setColumns(18);
+        panel.add(txtConfirmacion, gbc);
+
+        return panel;
+    }
+
     private Dimension calcularTamanoTarjeta(JComponent contenido, JComponent tarjeta) {
         Dimension tamanoContenido = contenido.getPreferredSize();
         Insets insets = tarjeta.getInsets();
@@ -380,6 +532,19 @@ public class LoginFrame extends JFrame {
         return envoltura;
     }
 
+    private JButton crearBotonEnlace(String texto) {
+        JButton boton = new JButton("<html><u>" + texto + "</u></html>");
+        boton.setOpaque(false);
+        boton.setContentAreaFilled(false);
+        boton.setBorderPainted(false);
+        boton.setFocusPainted(false);
+        boton.setForeground(new Color(222, 234, 231));
+        boton.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        boton.setFont(TemaVisual.fuente(Font.PLAIN, 12));
+        boton.setAlignmentX(CENTER_ALIGNMENT);
+        return boton;
+    }
+
     private void prepararCampo(JTextComponent campo) {
         campo.setOpaque(false);
         campo.setBorder(BorderFactory.createEmptyBorder());
@@ -392,6 +557,50 @@ public class LoginFrame extends JFrame {
         USUARIO,
         CANDADO,
         INFO
+    }
+
+    public static final class SolicitudCredencialesAcceso {
+
+        private final String nuevoUsername;
+        private final String nuevaContrasena;
+
+        public SolicitudCredencialesAcceso(String nuevoUsername, String nuevaContrasena) {
+            this.nuevoUsername = nuevoUsername;
+            this.nuevaContrasena = nuevaContrasena;
+        }
+
+        public String getNuevoUsername() {
+            return nuevoUsername;
+        }
+
+        public String getNuevaContrasena() {
+            return nuevaContrasena;
+        }
+    }
+
+    public static final class SolicitudRecuperacion {
+
+        private final String username;
+        private final String nombreCompleto;
+        private final String nuevaContrasena;
+
+        public SolicitudRecuperacion(String username, String nombreCompleto, String nuevaContrasena) {
+            this.username = username;
+            this.nombreCompleto = nombreCompleto;
+            this.nuevaContrasena = nuevaContrasena;
+        }
+
+        public String getUsername() {
+            return username;
+        }
+
+        public String getNombreCompleto() {
+            return nombreCompleto;
+        }
+
+        public String getNuevaContrasena() {
+            return nuevaContrasena;
+        }
     }
 
     private static final class FondoDecoradoPanel extends JPanel {

@@ -7,6 +7,7 @@
 3. El sistema puede mostrar una recomendacion para cambiar el usuario y la contrasena por defecto.
 4. Si la autenticacion es correcta, se abre la ventana principal con los modulos `Colaboradores` y `Nomina y reportes`.
 
+
 <img width="919" height="642" alt="Captura de pantalla 2026-04-22 a la(s) 7 22 55 p  m" src="https://github.com/user-attachments/assets/8651bae5-34b5-4557-bf98-5d1fe2079fc6" />
 
 
@@ -18,6 +19,13 @@
 4. Use `Actualizar` para modificar o `Eliminar` para depurar el registro.
 5. Mantenga activos solo los colaboradores que participaran en el calculo de nomina.
 
+
+<img width="736" height="421" alt="Captura de pantalla 2026-04-22 a la(s) 7 27 37 p  m" src="https://github.com/user-attachments/assets/e580eb87-9366-427d-88e3-900f9a258a35" />
+
+
+<img width="736" height="421" alt="Captura de pantalla 2026-04-22 a la(s) 7 27 13 p  m" src="https://github.com/user-attachments/assets/2c4fa586-d16f-4b33-8f2f-e778175d6753" />
+
+
 ## Generacion de nomina
 
 1. Ingrese al modulo `Nomina y reportes`.
@@ -26,6 +34,10 @@
 4. Presione `Generar nomina`.
 5. El sistema calcula salario bruto, deducciones, salario neto y costo patronal.
 6. Se genera un PDF individual para el colaborador.
+
+
+<img width="526" height="421" alt="Captura de pantalla 2026-04-22 a la(s) 7 29 52 p  m" src="https://github.com/user-attachments/assets/33dab762-f819-420c-8ff5-c4b25212e0b5" />
+
 
 ## Reporte patronal y correos
 

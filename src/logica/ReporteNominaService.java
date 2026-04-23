@@ -110,6 +110,8 @@ public class ReporteNominaService extends LogicaBase implements ExportadorPdf<No
             document.add(crearTablaGeneral(nominas));
             document.add(new Paragraph(" "));
             document.add(new Paragraph("Totales del periodo", SUBTITULO));
+            document.add(new Paragraph("Horas extra registradas: " + String.format("%.2f h",
+                    nominas.stream().mapToDouble(Nomina::getHorasExtra).sum()), TEXTO));
             document.add(new Paragraph("Salario bruto total: " + FormatoUtil.formatearMoneda(
                     nominas.stream().mapToDouble(Nomina::getSalarioBruto).sum()), TEXTO));
             document.add(new Paragraph("Deducciones totales: " + FormatoUtil.formatearMoneda(
@@ -130,7 +132,10 @@ public class ReporteNominaService extends LogicaBase implements ExportadorPdf<No
         table.setWidthPercentage(100);
         agregarEncabezado(table, "Concepto");
         agregarEncabezado(table, "Monto");
-        agregarFila(table, "Salario bruto", FormatoUtil.formatearMoneda(nomina.getSalarioBruto()));
+        agregarFila(table, "Salario base ordinario", FormatoUtil.formatearMoneda(nomina.getSalarioBaseOrdinario()));
+        agregarFila(table, "Horas extra registradas", String.format("%.2f h", nomina.getHorasExtra()));
+        agregarFila(table, "Monto por horas extra", FormatoUtil.formatearMoneda(nomina.getMontoHorasExtra()));
+        agregarFila(table, "Salario bruto final", FormatoUtil.formatearMoneda(nomina.getSalarioBruto()));
         agregarFila(table, "Deduccion SEM", FormatoUtil.formatearMoneda(nomina.getDeduccionSem()));
         agregarFila(table, "Deduccion IVM", FormatoUtil.formatearMoneda(nomina.getDeduccionIvm()));
         agregarFila(table, "Banco Popular trabajador", FormatoUtil.formatearMoneda(nomina.getDeduccionBancoPopular()));
@@ -145,7 +150,10 @@ public class ReporteNominaService extends LogicaBase implements ExportadorPdf<No
         table.setWidthPercentage(100);
         agregarEncabezado(table, "Resumen patronal");
         agregarEncabezado(table, "Monto");
-        agregarFila(table, "Salario bruto base", FormatoUtil.formatearMoneda(nomina.getSalarioBruto()));
+        agregarFila(table, "Salario base ordinario", FormatoUtil.formatearMoneda(nomina.getSalarioBaseOrdinario()));
+        agregarFila(table, "Horas extra liquidadas", String.format("%.2f h", nomina.getHorasExtra()));
+        agregarFila(table, "Pago por horas extra", FormatoUtil.formatearMoneda(nomina.getMontoHorasExtra()));
+        agregarFila(table, "Salario bruto final", FormatoUtil.formatearMoneda(nomina.getSalarioBruto()));
         agregarFila(table, "Total aportes patronales", FormatoUtil.formatearMoneda(nomina.getTotalAportesPatronales()));
         agregarFila(table, "Costo total empresa", FormatoUtil.formatearMoneda(nomina.getCostoTotalEmpresa()));
         return table;
@@ -171,15 +179,17 @@ public class ReporteNominaService extends LogicaBase implements ExportadorPdf<No
     }
 
     private PdfPTable crearTablaGeneral(List<Nomina> nominas) {
-        PdfPTable table = new PdfPTable(new float[]{3.5f, 2f, 2f, 2f, 2f});
+        PdfPTable table = new PdfPTable(new float[]{3.2f, 1.5f, 1.8f, 1.8f, 1.8f, 1.8f});
         table.setWidthPercentage(100);
         agregarEncabezado(table, "Empleado");
+        agregarEncabezado(table, "Horas extra");
         agregarEncabezado(table, "Bruto");
         agregarEncabezado(table, "Deducciones");
         agregarEncabezado(table, "Aportes patronales");
         agregarEncabezado(table, "Neto");
         for (Nomina nomina : nominas) {
-            agregarFila(table, nomina.getNombreEmpleado(), FormatoUtil.formatearMoneda(nomina.getSalarioBruto()),
+            agregarFila(table, nomina.getNombreEmpleado(), String.format("%.2f h", nomina.getHorasExtra()),
+                    FormatoUtil.formatearMoneda(nomina.getSalarioBruto()),
                     FormatoUtil.formatearMoneda(nomina.getTotalDeducciones()),
                     FormatoUtil.formatearMoneda(nomina.getTotalAportesPatronales()),
                     FormatoUtil.formatearMoneda(nomina.getSalarioNeto()));

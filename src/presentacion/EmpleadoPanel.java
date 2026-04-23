@@ -37,6 +37,7 @@ import presentacion.componentes.PanelRedondeado;
 import presentacion.componentes.RenderizadorEstadoTabla;
 import presentacion.componentes.TarjetaMetrica;
 import presentacion.estilo.TemaVisual;
+import utilidades.ConstantesNomina;
 import utilidades.FormatoUtil;
 
 /**
@@ -52,9 +53,12 @@ public class EmpleadoPanel extends JPanel {
     private final JTextField txtCorreo;
     private final JTextField txtSalario;
     private final JSpinner spHijos;
+    private final JSpinner spVacacionesAsignadas;
+    private final JSpinner spVacacionesTomadas;
     private final JCheckBox chkConyuge;
     private final JCheckBox chkActivo;
     private final JSpinner spFechaIngreso;
+    private final JLabel lblVacacionesDisponibles;
     private final JButton btnGuardar;
     private final JButton btnActualizar;
     private final JButton btnEliminar;
@@ -87,11 +91,16 @@ public class EmpleadoPanel extends JPanel {
         txtCorreo = new JTextField();
         txtSalario = new JTextField();
         spHijos = new JSpinner(new SpinnerNumberModel(0, 0, 20, 1));
+        spVacacionesAsignadas = new JSpinner(new SpinnerNumberModel(ConstantesNomina.DIAS_VACACIONES_ANUALES, 0, 60, 1));
+        spVacacionesTomadas = new JSpinner(new SpinnerNumberModel(0, 0, 60, 1));
         chkConyuge = new JCheckBox("Cónyuge a cargo");
         chkActivo = new JCheckBox("Empleado activo", true);
         spFechaIngreso = new JSpinner(new SpinnerDateModel());
         spFechaIngreso.setValue(new Date());
         spFechaIngreso.setEditor(new JSpinner.DateEditor(spFechaIngreso, "yyyy-MM-dd"));
+        lblVacacionesDisponibles = new JLabel();
+        lblVacacionesDisponibles.setFont(TemaVisual.fuente(Font.PLAIN, 12));
+        lblVacacionesDisponibles.setForeground(TemaVisual.TEXTO_SUAVE);
 
         TemaVisual.estilizarCampo(txtId);
         TemaVisual.estilizarCampo(txtCedula);
@@ -102,11 +111,16 @@ public class EmpleadoPanel extends JPanel {
         TemaVisual.estilizarCampo(txtSalario);
         txtSalario.setToolTipText("Ejemplos: 450000 | 450000,50 | 450000.50");
         TemaVisual.estilizarSpinner(spHijos);
+        TemaVisual.estilizarSpinner(spVacacionesAsignadas);
+        TemaVisual.estilizarSpinner(spVacacionesTomadas);
         TemaVisual.estilizarSpinner(spFechaIngreso);
         TemaVisual.estilizarCheck(chkConyuge);
         TemaVisual.estilizarCheck(chkActivo);
         txtId.setEditable(false);
         txtId.setBackground(TemaVisual.SUPERFICIE_SECUNDARIA);
+        spVacacionesAsignadas.addChangeListener(e -> actualizarResumenVacaciones());
+        spVacacionesTomadas.addChangeListener(e -> actualizarResumenVacaciones());
+        actualizarResumenVacaciones();
 
         btnGuardar = new JButton("Guardar");
         btnActualizar = new JButton("Actualizar");
@@ -120,7 +134,7 @@ public class EmpleadoPanel extends JPanel {
         TemaVisual.estilizarBotonSecundario(btnRecargar);
 
         modelo = new DefaultTableModel(new Object[]{
-            "ID", "Cédula", "Nombre", "Puesto", "Departamento", "Correo", "Salario", "Activo"
+            "ID", "Cédula", "Nombre", "Puesto", "Departamento", "Correo", "Salario", "Vac. usadas", "Vac. disp.", "Activo"
         }, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
@@ -131,7 +145,7 @@ public class EmpleadoPanel extends JPanel {
         tabla.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         tabla.setPreferredScrollableViewportSize(new Dimension(920, 460));
         TemaVisual.estilizarTabla(tabla);
-        tabla.getColumnModel().getColumn(7).setCellRenderer(new RenderizadorEstadoTabla());
+        tabla.getColumnModel().getColumn(9).setCellRenderer(new RenderizadorEstadoTabla());
 
         JSplitPane split = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, crearTarjetaFormulario(), crearTarjetaTabla());
         split.setOpaque(false);
@@ -176,6 +190,8 @@ public class EmpleadoPanel extends JPanel {
         empleado.setCorreoElectronico(txtCorreo.getText().trim());
         empleado.setSalarioBaseMensual(FormatoUtil.parsearMonto(txtSalario.getText().trim()));
         empleado.setCantidadHijos((Integer) spHijos.getValue());
+        empleado.setDiasVacacionesAsignados((Integer) spVacacionesAsignadas.getValue());
+        empleado.setDiasVacacionesTomados((Integer) spVacacionesTomadas.getValue());
         empleado.setConyugeACargo(chkConyuge.isSelected());
         empleado.setFechaIngreso(((Date) spFechaIngreso.getValue()).toInstant()
                 .atZone(ZoneId.systemDefault()).toLocalDate());
@@ -192,9 +208,12 @@ public class EmpleadoPanel extends JPanel {
         txtCorreo.setText(empleado.getCorreoElectronico());
         txtSalario.setText(String.valueOf(empleado.getSalarioBaseMensual()));
         spHijos.setValue(empleado.getCantidadHijos());
+        spVacacionesAsignadas.setValue(empleado.getDiasVacacionesAsignados());
+        spVacacionesTomadas.setValue(empleado.getDiasVacacionesTomados());
         chkConyuge.setSelected(empleado.isConyugeACargo());
         chkActivo.setSelected(empleado.isActivo());
         spFechaIngreso.setValue(Date.from(empleado.getFechaIngreso().atStartOfDay(ZoneId.systemDefault()).toInstant()));
+        actualizarResumenVacaciones();
     }
 
     public void setEmpleados(List<Empleado> empleados) {
@@ -209,6 +228,8 @@ public class EmpleadoPanel extends JPanel {
                 empleado.getDepartamento(),
                 empleado.getCorreoElectronico(),
                 FormatoUtil.formatearMoneda(empleado.getSalarioBaseMensual()),
+                empleado.getDiasVacacionesTomados(),
+                empleado.getDiasVacacionesDisponibles(),
                 empleado.isActivo() ? "Sí" : "No"
             });
         }
@@ -239,9 +260,12 @@ public class EmpleadoPanel extends JPanel {
         txtCorreo.setText("");
         txtSalario.setText("");
         spHijos.setValue(0);
+        spVacacionesAsignadas.setValue(ConstantesNomina.DIAS_VACACIONES_ANUALES);
+        spVacacionesTomadas.setValue(0);
         chkConyuge.setSelected(false);
         chkActivo.setSelected(true);
         spFechaIngreso.setValue(new Date());
+        actualizarResumenVacaciones();
         tabla.clearSelection();
     }
 
@@ -319,6 +343,24 @@ public class EmpleadoPanel extends JPanel {
         gbc.gridwidth = 2;
         formulario.add(crearBloqueCampo("Fecha de ingreso", spFechaIngreso), gbc);
 
+        gbc.gridy++;
+        gbc.insets = new Insets(6, 0, 8, 0);
+        formulario.add(TemaVisual.crearSubtitulo("Vacaciones anuales del colaborador"), gbc);
+
+        gbc.gridy++;
+        gbc.gridwidth = 1;
+        gbc.insets = new Insets(0, 0, 14, 14);
+        formulario.add(crearBloqueCampo("Días asignados al año", spVacacionesAsignadas), gbc);
+        gbc.gridx = 1;
+        gbc.insets = new Insets(0, 0, 14, 0);
+        formulario.add(crearBloqueCampo("Días solicitados o tomados", spVacacionesTomadas), gbc);
+
+        gbc.gridy++;
+        gbc.gridx = 0;
+        gbc.gridwidth = 2;
+        gbc.insets = new Insets(0, 0, 14, 0);
+        formulario.add(lblVacacionesDisponibles, gbc);
+
         JPanel checks = new JPanel(new FlowLayout(FlowLayout.LEFT, 18, 0));
         checks.setOpaque(false);
         checks.add(chkConyuge);
@@ -380,4 +422,13 @@ public class EmpleadoPanel extends JPanel {
         bloque.add(campo);
         return bloque;
     }
+
+    private void actualizarResumenVacaciones() {
+        int diasAsignados = (Integer) spVacacionesAsignadas.getValue();
+        int diasTomados = (Integer) spVacacionesTomadas.getValue();
+        int diasDisponibles = Math.max(0, diasAsignados - diasTomados);
+        lblVacacionesDisponibles.setText("Disponibles este año: " + diasDisponibles
+                + " de " + diasAsignados + " días. Solicitados o usados: " + diasTomados + ".");
+    }
+
 }

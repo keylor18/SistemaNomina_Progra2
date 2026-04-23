@@ -73,12 +73,13 @@ public class NominaController {
     private void generarNomina() {
         Empleado empleado = panel.getEmpleadoSeleccionado();
         YearMonth periodo = panel.getPeriodoSeleccionado();
+        double horasExtra = panel.getHorasExtraSeleccionadas();
         if (empleado == null) {
             panel.mostrarError("Debe seleccionar un empleado.");
             return;
         }
         try {
-            Nomina nomina = nominaService.generarYGuardarNomina(empleado.getId(), periodo);
+            Nomina nomina = nominaService.generarYGuardarNomina(empleado.getId(), periodo, horasExtra);
             Path rutaPdf = reporteNominaService.generarReporte(nomina);
             nomina.setRutaPdf(rutaPdf.toString());
             nominaService.actualizarRutaPdf(nomina.getId(), rutaPdf.toString());

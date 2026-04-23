@@ -26,6 +26,9 @@ public final class ConstantesNomina {
     public static final double FCL = 0.0150;
     public static final double ROP = 0.0200;
     public static final double INS = 0.0100;
+    public static final int DIAS_VACACIONES_ANUALES = 15;
+    public static final double HORAS_ORDINARIAS_MENSUALES = 240.0;
+    public static final double FACTOR_HORA_EXTRA = 1.50;
     public static final int MAX_INTENTOS_LOGIN = 3;
     public static final double CREDITO_HIJO_MENSUAL = 1_710.00;
     public static final double CREDITO_CONYUGE_MENSUAL = 2_590.00;

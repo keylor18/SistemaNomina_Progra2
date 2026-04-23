@@ -45,6 +45,12 @@ public class NominaRepositorioTxt extends RepositorioArchivo<Nomina, String> {
         if (entidad.getSalarioBruto() <= 0) {
             throw new ValidacionException("El salario bruto debe ser mayor a cero.");
         }
+        if (entidad.getHorasExtra() < 0) {
+            throw new ValidacionException("Las horas extra no pueden ser negativas.");
+        }
+        if (entidad.getMontoHorasExtra() < 0) {
+            throw new ValidacionException("El monto por horas extra no puede ser negativo.");
+        }
     }
 
     @Override
@@ -86,13 +92,16 @@ public class NominaRepositorioTxt extends RepositorioArchivo<Nomina, String> {
                 formatear(entidad.getAporteIns()),
                 formatear(entidad.getTotalAportesPatronales()),
                 formatear(entidad.getSalarioNeto()),
-                TextoPlanoUtil.codificarCampo(entidad.getRutaPdf()));
+                TextoPlanoUtil.codificarCampo(entidad.getRutaPdf()),
+                formatear(entidad.getSalarioBaseOrdinario()),
+                formatear(entidad.getHorasExtra()),
+                formatear(entidad.getMontoHorasExtra()));
     }
 
     @Override
     protected Nomina deserializar(String linea, int numeroLinea) throws PersistenciaException {
         String[] partes = linea.split("\\|", -1);
-        if (partes.length != 24) {
+        if (partes.length != 24 && partes.length != 27) {
             throw new PersistenciaException("Registro de nomina invalido en la linea " + numeroLinea + ".");
         }
         try {
@@ -121,6 +130,15 @@ public class NominaRepositorioTxt extends RepositorioArchivo<Nomina, String> {
             nomina.setTotalAportesPatronales(Double.parseDouble(partes[21]));
             nomina.setSalarioNeto(Double.parseDouble(partes[22]));
             nomina.setRutaPdf(TextoPlanoUtil.decodificarCampo(partes[23]));
+            if (partes.length == 27) {
+                nomina.setSalarioBaseOrdinario(Double.parseDouble(partes[24]));
+                nomina.setHorasExtra(Double.parseDouble(partes[25]));
+                nomina.setMontoHorasExtra(Double.parseDouble(partes[26]));
+            } else {
+                nomina.setSalarioBaseOrdinario(nomina.getSalarioBruto());
+                nomina.setHorasExtra(0);
+                nomina.setMontoHorasExtra(0);
+            }
             return nomina;
         } catch (Exception ex) {
             throw new PersistenciaException("No fue posible interpretar la nomina de la linea " + numeroLinea + ".", ex);

@@ -21,36 +21,14 @@ public class ReporteNominaServiceTest {
     public void debeGenerarPdfIndividual() throws Exception {
         Files.createDirectories(RutasSistema.REPORTES_DIR);
         ReporteNominaService service = new ReporteNominaService();
-        Nomina nomina = new Nomina();
-        nomina.setId("NOM-001");
-        nomina.setEmpleadoId("EMP-001");
-        nomina.setNombreEmpleado("Ana Vargas");
-        nomina.setPeriodo(YearMonth.of(2026, 4));
-        nomina.setFechaGeneracion(LocalDate.of(2026, 4, 16));
-        nomina.setSalarioBruto(1500000);
-        nomina.setDeduccionSem(82500);
-        nomina.setDeduccionIvm(64950);
-        nomina.setDeduccionBancoPopular(15000);
-        nomina.setDeduccionRenta(59840);
-        nomina.setTotalDeducciones(222290);
-        nomina.setAporteSemPatrono(138750);
-        nomina.setAporteIvmPatrono(83700);
-        nomina.setAporteAsignacionesFamiliares(75000);
-        nomina.setAporteImas(7500);
-        nomina.setAporteIna(22500);
-        nomina.setAporteBancoPopularPatronal(3750);
-        nomina.setAporteBancoPopularLpt(3750);
-        nomina.setAporteFcl(22500);
-        nomina.setAporteRop(30000);
-        nomina.setAporteIns(15000);
-        nomina.setTotalAportesPatronales(402950);
-        nomina.setSalarioNeto(1277710);
+        Nomina nomina = crearNominaBase();
 
         Path ruta = service.generarReporte(nomina);
         assertTrue(Files.exists(ruta));
         assertTrue(Files.size(ruta) > 0);
         String contenido = extraerTexto(ruta);
         assertTrue(contenido.contains("Comprobante individual de nomina"));
+        assertTrue(contenido.contains("Horas extra registradas"));
         assertFalse(contenido.contains("Total aportes patronales"));
     }
 
@@ -65,6 +43,7 @@ public class ReporteNominaServiceTest {
         assertTrue(Files.size(ruta) > 0);
         String contenido = extraerTexto(ruta);
         assertTrue(contenido.contains("Reporte patronal separado"));
+        assertTrue(contenido.contains("Horas extra liquidadas"));
         assertTrue(contenido.contains("Total aportes patronales"));
         assertTrue(contenido.contains("Costo total empresa"));
     }
@@ -76,24 +55,27 @@ public class ReporteNominaServiceTest {
         nomina.setNombreEmpleado("Ana Vargas");
         nomina.setPeriodo(YearMonth.of(2026, 4));
         nomina.setFechaGeneracion(LocalDate.of(2026, 4, 16));
-        nomina.setSalarioBruto(1500000);
-        nomina.setDeduccionSem(82500);
-        nomina.setDeduccionIvm(64950);
-        nomina.setDeduccionBancoPopular(15000);
-        nomina.setDeduccionRenta(59840);
-        nomina.setTotalDeducciones(222290);
-        nomina.setAporteSemPatrono(138750);
-        nomina.setAporteIvmPatrono(83700);
-        nomina.setAporteAsignacionesFamiliares(75000);
-        nomina.setAporteImas(7500);
-        nomina.setAporteIna(22500);
-        nomina.setAporteBancoPopularPatronal(3750);
-        nomina.setAporteBancoPopularLpt(3750);
-        nomina.setAporteFcl(22500);
-        nomina.setAporteRop(30000);
-        nomina.setAporteIns(15000);
-        nomina.setTotalAportesPatronales(402950);
-        nomina.setSalarioNeto(1277710);
+        nomina.setSalarioBaseOrdinario(1_500_000);
+        nomina.setHorasExtra(8);
+        nomina.setMontoHorasExtra(75_000);
+        nomina.setSalarioBruto(1_575_000);
+        nomina.setDeduccionSem(82_500);
+        nomina.setDeduccionIvm(64_950);
+        nomina.setDeduccionBancoPopular(15_750);
+        nomina.setDeduccionRenta(59_840);
+        nomina.setTotalDeducciones(223_040);
+        nomina.setAporteSemPatrono(145_687.50);
+        nomina.setAporteIvmPatrono(87_885);
+        nomina.setAporteAsignacionesFamiliares(78_750);
+        nomina.setAporteImas(7_875);
+        nomina.setAporteIna(23_625);
+        nomina.setAporteBancoPopularPatronal(3_937.50);
+        nomina.setAporteBancoPopularLpt(3_937.50);
+        nomina.setAporteFcl(23_625);
+        nomina.setAporteRop(31_500);
+        nomina.setAporteIns(15_750);
+        nomina.setTotalAportesPatronales(422_572.50);
+        nomina.setSalarioNeto(1_351_960);
         return nomina;
     }
 

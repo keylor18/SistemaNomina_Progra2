@@ -31,11 +31,22 @@ public class NominaService extends LogicaBase implements CalculadoraNomina {
 
     @Override
     public Nomina calcularNomina(Empleado empleado, YearMonth periodo) throws ValidacionException {
+        return calcularNomina(empleado, periodo, 0);
+    }
+
+    public Nomina calcularNomina(Empleado empleado, YearMonth periodo, double horasExtra)
+            throws ValidacionException {
         validar(empleado != null, "Debe seleccionar un empleado.");
         validar(periodo != null, "Debe indicar el periodo de nomina.");
         validar(empleado.isActivo(), "Solo se puede generar nomina a empleados activos.");
+        validar(horasExtra >= 0, "Las horas extra no pueden ser negativas.");
 
-        double salarioBruto = redondear(empleado.getSalarioBaseMensual());
+        double salarioBaseOrdinario = redondear(empleado.getSalarioBaseMensual());
+        double horasExtraRedondeadas = redondear(horasExtra);
+        double montoHorasExtra = redondear(horasExtraRedondeadas
+                * (salarioBaseOrdinario / ConstantesNomina.HORAS_ORDINARIAS_MENSUALES)
+                * ConstantesNomina.FACTOR_HORA_EXTRA);
+        double salarioBruto = redondear(salarioBaseOrdinario + montoHorasExtra);
         double baseSem = Math.max(salarioBruto, ConstantesNomina.BASE_MINIMA_SEM_2026);
         double baseIvm = Math.max(salarioBruto, ConstantesNomina.BASE_MINIMA_IVM_2026);
 
@@ -66,6 +77,9 @@ public class NominaService extends LogicaBase implements CalculadoraNomina {
         nomina.setNombreEmpleado(empleado.getNombreCompleto());
         nomina.setPeriodo(periodo);
         nomina.setFechaGeneracion(LocalDate.now());
+        nomina.setSalarioBaseOrdinario(salarioBaseOrdinario);
+        nomina.setHorasExtra(horasExtraRedondeadas);
+        nomina.setMontoHorasExtra(montoHorasExtra);
         nomina.setSalarioBruto(salarioBruto);
         nomina.setDeduccionSem(deduccionSem);
         nomina.setDeduccionIvm(deduccionIvm);
@@ -100,14 +114,18 @@ public class NominaService extends LogicaBase implements CalculadoraNomina {
      */
     public Nomina generarYGuardarNomina(String empleadoId, YearMonth periodo)
             throws PersistenciaException, ValidacionException, EntidadNoEncontradaException {
+        return generarYGuardarNomina(empleadoId, periodo, 0);
+    }
+
+    public Nomina generarYGuardarNomina(String empleadoId, YearMonth periodo, double horasExtra)
+            throws PersistenciaException, ValidacionException, EntidadNoEncontradaException {
         Empleado empleado = empleadoRepositorio.buscarPorId(empleadoId)
                 .orElseThrow(() -> new EntidadNoEncontradaException("El empleado seleccionado no existe."));
-        // Validar que no exista una nómina previa para evitar duplicados
         List<Nomina> existentes = listarPorPeriodo(periodo);
         if (existentes.stream().anyMatch(n -> n.getEmpleadoId().equals(empleadoId))) {
-            throw new ValidacionException("Ya existe una nómina para este empleado en el período seleccionado.");
+            throw new ValidacionException("Ya existe una nomina para este empleado en el periodo seleccionado.");
         }
-        Nomina nomina = calcularNomina(empleado, periodo);
+        Nomina nomina = calcularNomina(empleado, periodo, horasExtra);
         nominaRepositorio.guardar(nomina);
         return nomina;
     }

@@ -8,6 +8,7 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
+import utilidades.ConstantesNomina;
 import utilidades.TextoPlanoUtil;
 import utilidades.ValidacionesUtil;
 
@@ -48,6 +49,15 @@ public class EmpleadoRepositorioTxt extends RepositorioArchivo<Empleado, String>
         if (entidad.getCantidadHijos() < 0) {
             throw new ValidacionException("La cantidad de hijos no puede ser negativa.");
         }
+        if (entidad.getDiasVacacionesAsignados() < 0) {
+            throw new ValidacionException("Los dias de vacaciones asignados no pueden ser negativos.");
+        }
+        if (entidad.getDiasVacacionesTomados() < 0) {
+            throw new ValidacionException("Los dias de vacaciones solicitados no pueden ser negativos.");
+        }
+        if (entidad.getDiasVacacionesTomados() > entidad.getDiasVacacionesAsignados()) {
+            throw new ValidacionException("Los dias de vacaciones solicitados no pueden superar los disponibles.");
+        }
         if (entidad.getFechaIngreso() == null) {
             throw new ValidacionException("La fecha de ingreso es obligatoria.");
         }
@@ -82,16 +92,24 @@ public class EmpleadoRepositorioTxt extends RepositorioArchivo<Empleado, String>
                 Integer.toString(entidad.getCantidadHijos()),
                 Boolean.toString(entidad.isConyugeACargo()),
                 entidad.getFechaIngreso().toString(),
-                Boolean.toString(entidad.isActivo()));
+                Boolean.toString(entidad.isActivo()),
+                Integer.toString(entidad.getDiasVacacionesAsignados()),
+                Integer.toString(entidad.getDiasVacacionesTomados()));
     }
 
     @Override
     protected Empleado deserializar(String linea, int numeroLinea) throws PersistenciaException {
         String[] partes = linea.split("\\|", -1);
-        if (partes.length != 11) {
+        if (partes.length != 11 && partes.length != 13) {
             throw new PersistenciaException("Registro de empleado invalido en la linea " + numeroLinea + ".");
         }
         try {
+            int diasVacacionesAsignados = partes.length >= 13
+                    ? Integer.parseInt(partes[11])
+                    : ConstantesNomina.DIAS_VACACIONES_ANUALES;
+            int diasVacacionesTomados = partes.length >= 13
+                    ? Integer.parseInt(partes[12])
+                    : 0;
             return new Empleado(
                     TextoPlanoUtil.decodificarCampo(partes[0]),
                     TextoPlanoUtil.decodificarCampo(partes[1]),
@@ -103,7 +121,9 @@ public class EmpleadoRepositorioTxt extends RepositorioArchivo<Empleado, String>
                     Integer.parseInt(partes[7]),
                     Boolean.parseBoolean(partes[8]),
                     LocalDate.parse(partes[9]),
-                    Boolean.parseBoolean(partes[10]));
+                    Boolean.parseBoolean(partes[10]),
+                    diasVacacionesAsignados,
+                    diasVacacionesTomados);
         } catch (Exception ex) {
             throw new PersistenciaException("No fue posible interpretar el empleado de la linea " + numeroLinea + ".", ex);
         }

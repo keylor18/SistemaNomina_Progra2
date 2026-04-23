@@ -13,6 +13,9 @@ public class Nomina {
     private String nombreEmpleado;
     private YearMonth periodo;
     private LocalDate fechaGeneracion;
+    private double salarioBaseOrdinario;
+    private double horasExtra;
+    private double montoHorasExtra;
     private double salarioBruto;
     private double deduccionSem;
     private double deduccionIvm;
@@ -82,6 +85,30 @@ public class Nomina {
 
     public void setSalarioBruto(double salarioBruto) {
         this.salarioBruto = salarioBruto;
+    }
+
+    public double getSalarioBaseOrdinario() {
+        return salarioBaseOrdinario;
+    }
+
+    public void setSalarioBaseOrdinario(double salarioBaseOrdinario) {
+        this.salarioBaseOrdinario = salarioBaseOrdinario;
+    }
+
+    public double getHorasExtra() {
+        return horasExtra;
+    }
+
+    public void setHorasExtra(double horasExtra) {
+        this.horasExtra = horasExtra;
+    }
+
+    public double getMontoHorasExtra() {
+        return montoHorasExtra;
+    }
+
+    public void setMontoHorasExtra(double montoHorasExtra) {
+        this.montoHorasExtra = montoHorasExtra;
     }
 
     public double getDeduccionSem() {

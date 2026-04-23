@@ -109,6 +109,12 @@ public class EmpleadoService extends LogicaBase {
         validar(ValidacionesUtil.esCorreoValido(empleado.getCorreoElectronico()), "El correo electronico no es valido.");
         validar(empleado.getSalarioBaseMensual() > 0, "El salario base debe ser mayor a cero.");
         validar(empleado.getCantidadHijos() >= 0, "La cantidad de hijos no puede ser negativa.");
+        validar(empleado.getDiasVacacionesAsignados() >= 0,
+                "Los dias de vacaciones asignados no pueden ser negativos.");
+        validar(empleado.getDiasVacacionesTomados() >= 0,
+                "Los dias de vacaciones solicitados no pueden ser negativos.");
+        validar(empleado.getDiasVacacionesTomados() <= empleado.getDiasVacacionesAsignados(),
+                "Los dias de vacaciones solicitados no pueden superar los dias disponibles.");
         if (empleado.getFechaIngreso() == null) {
             empleado.setFechaIngreso(LocalDate.now());
         }

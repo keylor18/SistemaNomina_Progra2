@@ -1,6 +1,7 @@
 package entidades;
 
 import java.time.LocalDate;
+import utilidades.ConstantesNomina;
 
 /**
  * Representa a una persona colaboradora de la empresa.
@@ -18,6 +19,8 @@ public class Empleado {
     private boolean conyugeACargo;
     private LocalDate fechaIngreso;
     private boolean activo;
+    private int diasVacacionesAsignados = ConstantesNomina.DIAS_VACACIONES_ANUALES;
+    private int diasVacacionesTomados;
 
     public Empleado() {
     }
@@ -25,6 +28,14 @@ public class Empleado {
     public Empleado(String id, String cedula, String nombreCompleto, String puesto, String departamento,
             String correoElectronico, double salarioBaseMensual, int cantidadHijos, boolean conyugeACargo,
             LocalDate fechaIngreso, boolean activo) {
+        this(id, cedula, nombreCompleto, puesto, departamento, correoElectronico, salarioBaseMensual,
+                cantidadHijos, conyugeACargo, fechaIngreso, activo,
+                ConstantesNomina.DIAS_VACACIONES_ANUALES, 0);
+    }
+
+    public Empleado(String id, String cedula, String nombreCompleto, String puesto, String departamento,
+            String correoElectronico, double salarioBaseMensual, int cantidadHijos, boolean conyugeACargo,
+            LocalDate fechaIngreso, boolean activo, int diasVacacionesAsignados, int diasVacacionesTomados) {
         this.id = id;
         this.cedula = cedula;
         this.nombreCompleto = nombreCompleto;
@@ -36,6 +47,8 @@ public class Empleado {
         this.conyugeACargo = conyugeACargo;
         this.fechaIngreso = fechaIngreso;
         this.activo = activo;
+        this.diasVacacionesAsignados = diasVacacionesAsignados;
+        this.diasVacacionesTomados = diasVacacionesTomados;
     }
 
     public String getId() {
@@ -124,6 +137,26 @@ public class Empleado {
 
     public void setActivo(boolean activo) {
         this.activo = activo;
+    }
+
+    public int getDiasVacacionesAsignados() {
+        return diasVacacionesAsignados;
+    }
+
+    public void setDiasVacacionesAsignados(int diasVacacionesAsignados) {
+        this.diasVacacionesAsignados = diasVacacionesAsignados;
+    }
+
+    public int getDiasVacacionesTomados() {
+        return diasVacacionesTomados;
+    }
+
+    public void setDiasVacacionesTomados(int diasVacacionesTomados) {
+        this.diasVacacionesTomados = diasVacacionesTomados;
+    }
+
+    public int getDiasVacacionesDisponibles() {
+        return Math.max(0, diasVacacionesAsignados - diasVacacionesTomados);
     }
 
     @Override

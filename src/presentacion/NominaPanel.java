@@ -34,6 +34,7 @@ import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
 import javax.swing.SpinnerDateModel;
+import javax.swing.SpinnerNumberModel;
 import javax.swing.SwingUtilities;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.table.DefaultTableModel;
@@ -50,6 +51,7 @@ public class NominaPanel extends JPanel {
 
     private final JComboBox<Empleado> cmbEmpleados;
     private final JSpinner spPeriodo;
+    private final JSpinner spHorasExtra;
     private final JCheckBox chkEnviarAutomatico;
     private final JCheckBox chkEnviarPatrono;
     private final JTextField txtCorreoPatrono;
@@ -90,6 +92,8 @@ public class NominaPanel extends JPanel {
         cmbEmpleados.setMaximumRowCount(8);
         spPeriodo = new JSpinner(new SpinnerDateModel());
         spPeriodo.setEditor(new JSpinner.DateEditor(spPeriodo, "MM/yyyy"));
+        spHorasExtra = new JSpinner(new SpinnerNumberModel(0.0, 0.0, 240.0, 0.5));
+        spHorasExtra.setEditor(new JSpinner.NumberEditor(spHorasExtra, "0.0#"));
         chkEnviarAutomatico = new JCheckBox("Enviar comprobante al correo del empleado inmediatamente");
         chkEnviarPatrono = new JCheckBox("Enviar reporte patronal al correo indicado");
         txtCorreoPatrono = new JTextField();
@@ -106,6 +110,7 @@ public class NominaPanel extends JPanel {
 
         TemaVisual.estilizarCombo(cmbEmpleados);
         TemaVisual.estilizarSpinner(spPeriodo);
+        TemaVisual.estilizarSpinner(spHorasExtra);
         TemaVisual.estilizarCheck(chkEnviarAutomatico);
         TemaVisual.estilizarCheck(chkEnviarPatrono);
         TemaVisual.estilizarCampo(txtCorreoPatrono);
@@ -119,7 +124,7 @@ public class NominaPanel extends JPanel {
         txtCorreoPatrono.setToolTipText("Correo del patrono para enviar el reporte patronal separado");
 
         modelo = new DefaultTableModel(new Object[]{
-            "ID", "Empleado", "Período", "Bruto", "Deducciones", "Aportes", "Neto", "PDF"
+            "ID", "Empleado", "Período", "Horas extra", "Bruto", "Deducciones", "Aportes", "Neto", "PDF"
         }, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
@@ -130,7 +135,7 @@ public class NominaPanel extends JPanel {
         tabla.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         tabla.setPreferredScrollableViewportSize(new Dimension(960, 300));
         TemaVisual.estilizarTabla(tabla);
-        tabla.getColumnModel().getColumn(7).setCellRenderer(new RenderizadorEstadoTabla());
+        tabla.getColumnModel().getColumn(8).setCellRenderer(new RenderizadorEstadoTabla());
 
         panelDetalle = new JEditorPane("text/html", "");
         panelDetalle.putClientProperty(JEditorPane.HONOR_DISPLAY_PROPERTIES, Boolean.TRUE);
@@ -169,8 +174,7 @@ public class NominaPanel extends JPanel {
         scrollGeneral.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
         add(scrollGeneral, BorderLayout.CENTER);
 
-        TemaVisual.addTemaListener(() ->
-                SwingUtilities.invokeLater(() -> mostrarDetalleNomina(nominaDetalle)));
+        TemaVisual.addTemaListener(() -> mostrarDetalleNomina(nominaDetalle));
 
         SwingUtilities.invokeLater(() -> {
             superior.setDividerLocation(0.46);
@@ -220,10 +224,12 @@ public class NominaPanel extends JPanel {
         chkEnviarAutomatico.setEnabled(hayEmpleados);
         chkEnviarPatrono.setEnabled(hayEmpleados);
         cmbEmpleados.setEnabled(hayEmpleados);
+        spHorasExtra.setEnabled(hayEmpleados);
         txtCorreoPatrono.setEnabled(hayEmpleados);
         btnEnviarCorreoPatrono.setEnabled(hayEmpleados);
         if (hayEmpleados) {
             cmbEmpleados.setSelectedIndex(0);
+            spHorasExtra.setValue(0.0);
             lblEstadoGeneracion.setForeground(TemaVisual.EXITO);
             lblEstadoGeneracion.setText(empleados.size() == 1
                     ? "1 colaborador activo disponible para generar nómina."
@@ -241,6 +247,10 @@ public class NominaPanel extends JPanel {
     public YearMonth getPeriodoSeleccionado() {
         Date fecha = (Date) spPeriodo.getValue();
         return YearMonth.from(fecha.toInstant().atZone(ZoneId.systemDefault()).toLocalDate());
+    }
+
+    public double getHorasExtraSeleccionadas() {
+        return ((Number) spHorasExtra.getValue()).doubleValue();
     }
 
     public boolean isEnviarAutomatico() {
@@ -263,6 +273,7 @@ public class NominaPanel extends JPanel {
                 nomina.getId(),
                 nomina.getNombreEmpleado(),
                 FormatoUtil.formatearPeriodo(nomina.getPeriodo()),
+                formatearHoras(nomina.getHorasExtra()),
                 FormatoUtil.formatearMoneda(nomina.getSalarioBruto()),
                 FormatoUtil.formatearMoneda(nomina.getTotalDeducciones()),
                 FormatoUtil.formatearMoneda(nomina.getTotalAportesPatronales()),
@@ -302,8 +313,8 @@ public class NominaPanel extends JPanel {
             panelDetalle.setText("<html><body style='font-family:Segoe UI;padding:16px;"
                     + "color:" + cTexto + ";background:" + cFondo + ";'>"
                     + "<h2 style='margin-top:0;color:" + cPrimario + ";'>Detalle de nómina</h2>"
-                    + "<p>Seleccione una nómina del historial para visualizar salario bruto, deducciones, "
-                    + "aportes patronales, costo total y ruta del comprobante PDF.</p>"
+                    + "<p>Seleccione una nómina del historial para visualizar salario base, horas extra, "
+                    + "deducciones, aportes patronales, costo total y ruta del comprobante PDF.</p>"
                     + "</body></html>");
             return;
         }
@@ -312,7 +323,13 @@ public class NominaPanel extends JPanel {
                 + "<h2 style='margin-top:0;color:%s;'>%s</h2>"
                 + "<p style='color:%s;margin-top:0;'>Período %s | Generada el %s</p>"
                 + "<table style='width:100%%;border-collapse:collapse;font-size:13px;'>"
-                + "<tr><td style='padding:8px 0;color:%s;'>Salario bruto</td>"
+                + "<tr><td style='padding:8px 0;color:%s;'>Salario base ordinario</td>"
+                + "    <td style='padding:8px 0;text-align:right;'>%s</td></tr>"
+                + "<tr><td style='padding:8px 0;color:%s;'>Horas extra registradas</td>"
+                + "    <td style='padding:8px 0;text-align:right;'>%s</td></tr>"
+                + "<tr><td style='padding:8px 0;color:%s;'>Pago por horas extra</td>"
+                + "    <td style='padding:8px 0;text-align:right;'>%s</td></tr>"
+                + "<tr><td style='padding:8px 0;color:%s;'><b>Salario bruto final</b></td>"
                 + "    <td style='padding:8px 0;text-align:right;'><b>%s</b></td></tr>"
                 + "<tr><td style='padding:8px 0;color:%s;'>SEM</td>"
                 + "    <td style='padding:8px 0;text-align:right;'>%s</td></tr>"
@@ -340,6 +357,9 @@ public class NominaPanel extends JPanel {
                         cPrimario, nomina.getNombreEmpleado(),
                         cSuave, FormatoUtil.formatearPeriodo(nomina.getPeriodo()),
                         FormatoUtil.formatearFecha(nomina.getFechaGeneracion()),
+                        cSuave, FormatoUtil.formatearMoneda(nomina.getSalarioBaseOrdinario()),
+                        cSuave, formatearHoras(nomina.getHorasExtra()),
+                        cSuave, FormatoUtil.formatearMoneda(nomina.getMontoHorasExtra()),
                         cSuave, FormatoUtil.formatearMoneda(nomina.getSalarioBruto()),
                         cSuave, FormatoUtil.formatearMoneda(nomina.getDeduccionSem()),
                         cSuave, FormatoUtil.formatearMoneda(nomina.getDeduccionIvm()),
@@ -431,6 +451,13 @@ public class NominaPanel extends JPanel {
 
         gbc.gridy++;
         formulario.add(crearBloqueCampo("Período", spPeriodo), gbc);
+
+        gbc.gridy++;
+        formulario.add(crearBloqueCampo("Horas extra del período", spHorasExtra), gbc);
+
+        gbc.gridy++;
+        gbc.insets = new Insets(0, 0, 10, 0);
+        formulario.add(TemaVisual.crearSubtitulo("Las horas extra se liquidan al 150% del valor hora ordinaria."), gbc);
 
         gbc.gridy++;
         formulario.add(chkEnviarAutomatico, gbc);
@@ -539,4 +566,9 @@ public class NominaPanel extends JPanel {
         bloque.add(campo);
         return bloque;
     }
+
+    private String formatearHoras(double horas) {
+        return String.format("%.2f h", horas);
+    }
+
 }

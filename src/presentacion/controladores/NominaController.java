@@ -20,7 +20,7 @@ import presentacion.NominaPanel;
 import utilidades.RegistroLogger;
 
 /**
- * Controlador del flujo de nómina, PDF y correo.
+ * Controlador del flujo de nomina, PDF y correo.
  */
 public class NominaController {
 
@@ -60,6 +60,7 @@ public class NominaController {
         panel.setAccionExportarSeleccionada(e -> exportarSeleccionada());
         panel.setAccionExportarGeneral(e -> exportarGeneral());
         panel.setAccionEnviarCorreo(e -> enviarCorreo());
+        panel.setAccionEnviarCorreoPatrono(e -> enviarCorreoPatrono());
         panel.setAccionRecargar(e -> recargarTodo());
         panel.setAccionEliminar(e -> eliminarNomina());
         panel.setSelectionListener(e -> {
@@ -81,16 +82,24 @@ public class NominaController {
             Path rutaPdf = reporteNominaService.generarReporte(nomina);
             nomina.setRutaPdf(rutaPdf.toString());
             nominaService.actualizarRutaPdf(nomina.getId(), rutaPdf.toString());
+
+            boolean envioEmpleado = false;
+            boolean envioPatrono = false;
             if (panel.isEnviarAutomatico()) {
                 correoService.enviarNomina(empleado, nomina, rutaPdf);
+                envioEmpleado = true;
             }
+            if (panel.isEnviarPatronoAutomatico()) {
+                Path rutaPatronal = reporteNominaService.generarReportePatronal(nomina);
+                correoService.enviarReportePatronal(panel.getCorreoPatrono(), nomina, rutaPatronal);
+                envioPatrono = true;
+            }
+
             recargarNominas();
-            panel.mostrarInfo(panel.isEnviarAutomatico()
-                    ? "Nómina generada, PDF creado y correo enviado."
-                    : "Nómina generada y PDF creado correctamente.");
+            panel.mostrarInfo(construirMensajeGeneracion(envioEmpleado, envioPatrono));
         } catch (PersistenciaException | ValidacionException | EntidadNoEncontradaException
                 | PdfException | CorreoException ex) {
-            RegistroLogger.registrarError("Generar nómina", ex);
+            RegistroLogger.registrarError("Generar nomina", ex);
             panel.mostrarError(ex.getMessage());
         }
     }
@@ -98,7 +107,7 @@ public class NominaController {
     private void exportarSeleccionada() {
         Nomina nomina = panel.getNominaSeleccionada();
         if (nomina == null) {
-            panel.mostrarError("Seleccione una nómina del historial.");
+            panel.mostrarError("Seleccione una nomina del historial.");
             return;
         }
         try {
@@ -116,7 +125,7 @@ public class NominaController {
             YearMonth periodo = panel.getPeriodoSeleccionado();
             List<Nomina> nominas = nominaService.listarPorPeriodo(periodo);
             if (nominas.isEmpty()) {
-                panel.mostrarError("No existen nóminas para el período seleccionado.");
+                panel.mostrarError("No existen nominas para el periodo seleccionado.");
                 return;
             }
             Path ruta = reporteNominaService.generarReporteGeneral(nominas, periodo);
@@ -130,18 +139,34 @@ public class NominaController {
     private void enviarCorreo() {
         Nomina nomina = panel.getNominaSeleccionada();
         if (nomina == null) {
-            panel.mostrarError("Seleccione una nómina del historial.");
+            panel.mostrarError("Seleccione una nomina del historial.");
             return;
         }
         try {
             Empleado empleado = empleadoService.buscarPorId(nomina.getEmpleadoId())
-                    .orElseThrow(() -> new EntidadNoEncontradaException("No se encontró el empleado asociado."));
+                    .orElseThrow(() -> new EntidadNoEncontradaException("No se encontro el empleado asociado."));
             Path ruta = asegurarPdf(nomina);
             correoService.enviarNomina(empleado, nomina, ruta);
             panel.mostrarInfo("Correo enviado correctamente a " + empleado.getCorreoElectronico());
         } catch (PersistenciaException | EntidadNoEncontradaException | PdfException
                 | CorreoException | ValidacionException ex) {
-            RegistroLogger.registrarError("Enviar correo de nómina", ex);
+            RegistroLogger.registrarError("Enviar correo de nomina", ex);
+            panel.mostrarError(ex.getMessage());
+        }
+    }
+
+    private void enviarCorreoPatrono() {
+        Nomina nomina = panel.getNominaSeleccionada();
+        if (nomina == null) {
+            panel.mostrarError("Seleccione una nomina del historial.");
+            return;
+        }
+        try {
+            Path rutaPatronal = reporteNominaService.generarReportePatronal(nomina);
+            correoService.enviarReportePatronal(panel.getCorreoPatrono(), nomina, rutaPatronal);
+            panel.mostrarInfo("Reporte patronal enviado correctamente a " + panel.getCorreoPatrono());
+        } catch (PdfException | CorreoException ex) {
+            RegistroLogger.registrarError("Enviar correo patronal", ex);
             panel.mostrarError(ex.getMessage());
         }
     }
@@ -149,15 +174,15 @@ public class NominaController {
     private void eliminarNomina() {
         Nomina nomina = panel.getNominaSeleccionada();
         if (nomina == null) {
-            panel.mostrarError("Seleccione una nómina del historial para eliminar.");
+            panel.mostrarError("Seleccione una nomina del historial para eliminar.");
             return;
         }
         int confirmacion = javax.swing.JOptionPane.showConfirmDialog(
                 panel,
-                "¿Está seguro de que desea eliminar la nómina de " + nomina.getNombreEmpleado()
-                + " del período " + utilidades.FormatoUtil.formatearPeriodo(nomina.getPeriodo()) + "?\n"
-                + "Esta acción no se puede deshacer.",
-                "Confirmar eliminación",
+                "\u00bfEsta seguro de que desea eliminar la nomina de " + nomina.getNombreEmpleado()
+                + " del periodo " + utilidades.FormatoUtil.formatearPeriodo(nomina.getPeriodo()) + "?\n"
+                + "Esta accion no se puede deshacer.",
+                "Confirmar eliminacion",
                 javax.swing.JOptionPane.YES_NO_OPTION,
                 javax.swing.JOptionPane.WARNING_MESSAGE);
         if (confirmacion != javax.swing.JOptionPane.YES_OPTION) {
@@ -166,9 +191,9 @@ public class NominaController {
         try {
             nominaService.eliminarNomina(nomina.getId());
             recargarNominas();
-            panel.mostrarInfo("Nómina eliminada correctamente.");
+            panel.mostrarInfo("Nomina eliminada correctamente.");
         } catch (PersistenciaException | EntidadNoEncontradaException ex) {
-            RegistroLogger.registrarError("Eliminar nómina", ex);
+            RegistroLogger.registrarError("Eliminar nomina", ex);
             panel.mostrarError(ex.getMessage());
         }
     }
@@ -178,8 +203,8 @@ public class NominaController {
             panel.setNominas(nominaService.listarNominas());
             panel.mostrarDetalleNomina(panel.getNominaSeleccionada());
         } catch (PersistenciaException ex) {
-            RegistroLogger.registrarError("Listar nóminas", ex);
-            panel.mostrarError("No fue posible cargar el historial de nóminas.");
+            RegistroLogger.registrarError("Listar nominas", ex);
+            panel.mostrarError("No fue posible cargar el historial de nominas.");
         }
     }
 
@@ -195,5 +220,18 @@ public class NominaController {
         nomina.setRutaPdf(rutaNueva.toString());
         nominaService.actualizarRutaPdf(nomina.getId(), rutaNueva.toString());
         return rutaNueva;
+    }
+
+    private String construirMensajeGeneracion(boolean envioEmpleado, boolean envioPatrono) {
+        if (envioEmpleado && envioPatrono) {
+            return "Nomina generada, PDF individual creado y correos enviados al colaborador y al patrono.";
+        }
+        if (envioEmpleado) {
+            return "Nomina generada, PDF individual creado y correo enviado al colaborador.";
+        }
+        if (envioPatrono) {
+            return "Nomina generada, PDF individual creado y reporte patronal enviado al patrono.";
+        }
+        return "Nomina generada y PDF individual creado correctamente.";
     }
 }

@@ -11,4 +11,6 @@ import java.nio.file.Path;
 public interface NotificadorCorreo {
 
     void enviarNomina(Empleado empleado, Nomina nomina, Path rutaPdf) throws CorreoException;
+
+    void enviarReportePatronal(String correoPatrono, Nomina nomina, Path rutaPdf) throws CorreoException;
 }

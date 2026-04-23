@@ -31,6 +31,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JSpinner;
 import javax.swing.JSplitPane;
 import javax.swing.JTable;
+import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
 import javax.swing.SpinnerDateModel;
 import javax.swing.SwingUtilities;
@@ -50,10 +51,13 @@ public class NominaPanel extends JPanel {
     private final JComboBox<Empleado> cmbEmpleados;
     private final JSpinner spPeriodo;
     private final JCheckBox chkEnviarAutomatico;
+    private final JCheckBox chkEnviarPatrono;
+    private final JTextField txtCorreoPatrono;
     private final JButton btnGenerar;
     private final JButton btnExportarSeleccionada;
     private final JButton btnExportarGeneral;
     private final JButton btnEnviarCorreo;
+    private final JButton btnEnviarCorreoPatrono;
     private final JButton btnRecargar;
     private final JButton btnEliminar;
     private final JTable tabla;
@@ -87,10 +91,13 @@ public class NominaPanel extends JPanel {
         spPeriodo = new JSpinner(new SpinnerDateModel());
         spPeriodo.setEditor(new JSpinner.DateEditor(spPeriodo, "MM/yyyy"));
         chkEnviarAutomatico = new JCheckBox("Enviar comprobante al correo del empleado inmediatamente");
+        chkEnviarPatrono = new JCheckBox("Enviar reporte patronal al correo indicado");
+        txtCorreoPatrono = new JTextField();
         btnGenerar = new JButton("Generar nómina");
         btnExportarSeleccionada = new JButton("PDF individual");
         btnExportarGeneral = new JButton("PDF general");
         btnEnviarCorreo = new JButton("Enviar correo");
+        btnEnviarCorreoPatrono = new JButton("Enviar al patrono");
         btnRecargar = new JButton("Recargar historial");
         btnEliminar = new JButton("Eliminar registro");
         lblEstadoGeneracion = new JLabel("Cargando colaboradores activos...");
@@ -100,12 +107,16 @@ public class NominaPanel extends JPanel {
         TemaVisual.estilizarCombo(cmbEmpleados);
         TemaVisual.estilizarSpinner(spPeriodo);
         TemaVisual.estilizarCheck(chkEnviarAutomatico);
+        TemaVisual.estilizarCheck(chkEnviarPatrono);
+        TemaVisual.estilizarCampo(txtCorreoPatrono);
         TemaVisual.estilizarBotonPrimario(btnGenerar);
         TemaVisual.estilizarBotonSecundario(btnExportarSeleccionada);
         TemaVisual.estilizarBotonSecundario(btnExportarGeneral);
         TemaVisual.estilizarBotonSecundario(btnEnviarCorreo);
+        TemaVisual.estilizarBotonSecundario(btnEnviarCorreoPatrono);
         TemaVisual.estilizarBotonSecundario(btnRecargar);
         TemaVisual.estilizarBotonPeligro(btnEliminar);
+        txtCorreoPatrono.setToolTipText("Correo del patrono para enviar el reporte patronal separado");
 
         modelo = new DefaultTableModel(new Object[]{
             "ID", "Empleado", "Período", "Bruto", "Deducciones", "Aportes", "Neto", "PDF"
@@ -183,6 +194,10 @@ public class NominaPanel extends JPanel {
         btnEnviarCorreo.addActionListener(listener);
     }
 
+    public void setAccionEnviarCorreoPatrono(ActionListener listener) {
+        btnEnviarCorreoPatrono.addActionListener(listener);
+    }
+
     public void setAccionRecargar(ActionListener listener) {
         btnRecargar.addActionListener(listener);
     }
@@ -203,7 +218,10 @@ public class NominaPanel extends JPanel {
         boolean hayEmpleados = !empleados.isEmpty();
         btnGenerar.setEnabled(hayEmpleados);
         chkEnviarAutomatico.setEnabled(hayEmpleados);
+        chkEnviarPatrono.setEnabled(hayEmpleados);
         cmbEmpleados.setEnabled(hayEmpleados);
+        txtCorreoPatrono.setEnabled(hayEmpleados);
+        btnEnviarCorreoPatrono.setEnabled(hayEmpleados);
         if (hayEmpleados) {
             cmbEmpleados.setSelectedIndex(0);
             lblEstadoGeneracion.setForeground(TemaVisual.EXITO);
@@ -227,6 +245,14 @@ public class NominaPanel extends JPanel {
 
     public boolean isEnviarAutomatico() {
         return chkEnviarAutomatico.isSelected();
+    }
+
+    public boolean isEnviarPatronoAutomatico() {
+        return chkEnviarPatrono.isSelected();
+    }
+
+    public String getCorreoPatrono() {
+        return txtCorreoPatrono.getText().trim();
     }
 
     public void setNominas(List<Nomina> nominas) {
@@ -300,6 +326,9 @@ public class NominaPanel extends JPanel {
                 + "    <td style='padding:8px 0;text-align:right;'><b>%s</b></td></tr>"
                 + "<tr><td style='padding:8px 0;color:%s;'><b>Salario neto</b></td>"
                 + "    <td style='padding:8px 0;text-align:right;color:%s;'><b>%s</b></td></tr>"
+                + "</table>"
+                + "<h3 style='margin:18px 0 8px 0;color:%s;'>Resumen patronal</h3>"
+                + "<table style='width:100%%;border-collapse:collapse;font-size:13px;'>"
                 + "<tr><td style='padding:8px 0;color:%s;'>Aportes patronales</td>"
                 + "    <td style='padding:8px 0;text-align:right;'>%s</td></tr>"
                 + "<tr><td style='padding:8px 0;color:%s;'>Costo total empresa</td>"
@@ -318,6 +347,7 @@ public class NominaPanel extends JPanel {
                         cSuave, FormatoUtil.formatearMoneda(nomina.getDeduccionRenta()),
                         cSuave, FormatoUtil.formatearMoneda(nomina.getTotalDeducciones()),
                         cPrimario, cPrimario, FormatoUtil.formatearMoneda(nomina.getSalarioNeto()),
+                        cPrimario,
                         cSuave, FormatoUtil.formatearMoneda(nomina.getTotalAportesPatronales()),
                         cSuave, FormatoUtil.formatearMoneda(nomina.getCostoTotalEmpresa()),
                         cSuave, nomina.getRutaPdf() == null || nomina.getRutaPdf().isBlank()
@@ -406,15 +436,27 @@ public class NominaPanel extends JPanel {
         formulario.add(chkEnviarAutomatico, gbc);
 
         gbc.gridy++;
+        gbc.insets = new Insets(6, 0, 10, 0);
+        formulario.add(crearBloqueCampo("Correo del patrono", txtCorreoPatrono), gbc);
+
+        gbc.gridy++;
+        gbc.insets = new Insets(0, 0, 10, 0);
+        formulario.add(chkEnviarPatrono, gbc);
+
+        gbc.gridy++;
         gbc.insets = new Insets(4, 0, 4, 0);
         formulario.add(lblEstadoGeneracion, gbc);
 
-        JPanel subAcciones = new JPanel(new GridLayout(2, 2, 10, 10));
+        JPanel subAcciones = new JPanel(new GridLayout(3, 2, 10, 10));
         subAcciones.setOpaque(false);
         subAcciones.add(btnExportarSeleccionada);
         subAcciones.add(btnExportarGeneral);
         subAcciones.add(btnEnviarCorreo);
+        subAcciones.add(btnEnviarCorreoPatrono);
         subAcciones.add(btnRecargar);
+        JPanel relleno = new JPanel();
+        relleno.setOpaque(false);
+        subAcciones.add(relleno);
 
         JPanel acciones = new JPanel(new BorderLayout(0, 10));
         acciones.setOpaque(false);

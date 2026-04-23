@@ -47,23 +47,10 @@ public class CorreoService extends LogicaBase implements NotificadorCorreo {
         }
 
         try {
-            String remitente = "curso_progra2@comredcr.com";
-            String contrasena = "u6X1h1p9@";
-
-            Session session = Session.getInstance(crearPropiedades(), new Authenticator() {
-                @Override
-                protected PasswordAuthentication getPasswordAuthentication() {
-                    return new PasswordAuthentication(remitente, contrasena);
-                }
-            });
-
-            MimeMessage mensaje = new MimeMessage(session);
-            mensaje.setFrom(new InternetAddress(remitente));
-            mensaje.setRecipients(Message.RecipientType.TO, InternetAddress.parse(empleado.getCorreoElectronico()));
-            mensaje.setSubject("Comprobante de nomina - " + FormatoUtil.formatearPeriodo(nomina.getPeriodo()));
-
-            MimeBodyPart cuerpo = new MimeBodyPart();
-            cuerpo.setText("""
+            enviarConAdjunto(
+                    empleado.getCorreoElectronico(),
+                    "Comprobante de nomina - " + FormatoUtil.formatearPeriodo(nomina.getPeriodo()),
+                    """
                     Estimado colaborador:
 
                     Se adjunta el comprobante de nomina correspondiente al periodo %s.
@@ -72,20 +59,47 @@ public class CorreoService extends LogicaBase implements NotificadorCorreo {
 
                     Este mensaje fue generado automaticamente.
                     """
-                    .formatted(FormatoUtil.formatearPeriodo(nomina.getPeriodo()),
-                            FormatoUtil.formatearMoneda(nomina.getSalarioNeto())));
-
-            MimeBodyPart adjunto = new MimeBodyPart();
-            adjunto.attachFile(rutaPdf.toFile());
-
-            MimeMultipart contenido = new MimeMultipart();
-            contenido.addBodyPart(cuerpo);
-            contenido.addBodyPart(adjunto);
-            mensaje.setContent(contenido);
-
-            despachadorCorreo.enviar(mensaje);
+                            .formatted(FormatoUtil.formatearPeriodo(nomina.getPeriodo()),
+                                    FormatoUtil.formatearMoneda(nomina.getSalarioNeto())),
+                    rutaPdf);
         } catch (Exception ex) {
             throw new CorreoException("No fue posible enviar el correo de la nomina.", ex);
+        }
+    }
+
+    @Override
+    public void enviarReportePatronal(String correoPatrono, Nomina nomina, Path rutaPdf) throws CorreoException {
+        if (nomina == null) {
+            throw new CorreoException("Debe indicar la nomina patronal a enviar.");
+        }
+        if (!ValidacionesUtil.esCorreoValido(correoPatrono)) {
+            throw new CorreoException("Debe indicar un correo valido para el patrono.");
+        }
+        if (rutaPdf == null || Files.notExists(rutaPdf)) {
+            throw new CorreoException("No se encontro el archivo PDF patronal a adjuntar.");
+        }
+
+        try {
+            enviarConAdjunto(
+                    correoPatrono,
+                    "Reporte patronal - " + nomina.getNombreEmpleado() + " - "
+                    + FormatoUtil.formatearPeriodo(nomina.getPeriodo()),
+                    """
+                    Estimado patrono:
+
+                    Se adjunta el reporte patronal separado de la nomina del colaborador %s.
+
+                    Total de aportes patronales: %s
+                    Costo total empresa: %s
+
+                    Este mensaje fue generado automaticamente.
+                    """
+                            .formatted(nomina.getNombreEmpleado(),
+                                    FormatoUtil.formatearMoneda(nomina.getTotalAportesPatronales()),
+                                    FormatoUtil.formatearMoneda(nomina.getCostoTotalEmpresa())),
+                    rutaPdf);
+        } catch (Exception ex) {
+            throw new CorreoException("No fue posible enviar el correo patronal.", ex);
         }
     }
 
@@ -97,5 +111,36 @@ public class CorreoService extends LogicaBase implements NotificadorCorreo {
         props.put("mail.smtp.ssl.enable", "true");
         props.put("mail.smtp.ssl.protocols", "TLSv1.2");
         return props;
+    }
+
+    private void enviarConAdjunto(String destinatario, String asunto, String cuerpoTexto, Path rutaPdf)
+            throws Exception {
+        String remitente = "curso_progra2@comredcr.com";
+        String contrasena = "u6X1h1p9@";
+
+        Session session = Session.getInstance(crearPropiedades(), new Authenticator() {
+            @Override
+            protected PasswordAuthentication getPasswordAuthentication() {
+                return new PasswordAuthentication(remitente, contrasena);
+            }
+        });
+
+        MimeMessage mensaje = new MimeMessage(session);
+        mensaje.setFrom(new InternetAddress(remitente));
+        mensaje.setRecipients(Message.RecipientType.TO, InternetAddress.parse(destinatario));
+        mensaje.setSubject(asunto);
+
+        MimeBodyPart cuerpo = new MimeBodyPart();
+        cuerpo.setText(cuerpoTexto);
+
+        MimeBodyPart adjunto = new MimeBodyPart();
+        adjunto.attachFile(rutaPdf.toFile());
+
+        MimeMultipart contenido = new MimeMultipart();
+        contenido.addBodyPart(cuerpo);
+        contenido.addBodyPart(adjunto);
+        mensaje.setContent(contenido);
+
+        despachadorCorreo.enviar(mensaje);
     }
 }
